@@ -1,9 +1,85 @@
-# PIURA-ALERTA-FRONTEND
-# Es una plataforma web e IoT en tiempo real diseñada para el monitoreo del río Piura y la prevención de inundaciones.
+# 💻 PIURA ALERTA — Dashboard de Mando, Control & Monitoreo Hidrológico
 
-# La página actúa como un Centro de Mando y Control Hidrológico:
+## 👥 Integrantes
 
-# Visualización en Vivo: Recibe continuamente las lecturas físicas del sensor ultrasónico/ESP32 vía WebSockets, actualizando la altura del río y trazando la curva de nivel en un gráfico interactivo sin necesidad de recargar la pantalla.
-# Mapa GIS y Semáforo de Riesgo: Muestra la ubicación de los puntos de medición en un mapa geoespacial de Piura y cambia automáticamente los colores de los indicadores (Verde, Amarillo y Rojo) según la severidad del caudal.
+* **Sheila Jacqueline Principe Merino** — Lead Hardware IoT & Backend Engineer
+* **Adrian Steven Juarez Panta** — Lead Frontend UI/UX & Structural Engineer
 
-# Gestión de Crisis e Integración: Procesa un algoritmo predictivo que estima las horas de llegada de la crecida, gestiona la ubicación de los albergues habilitados y dispara alertas automáticas a los celulares de la población conectándose directamente con Telegram.
+## 📝 Descripción
+
+El **Frontend de PIURA ALERTA** representa el Centro de Mando y Control Hidrológico para la prevención de inundaciones en la cuenca del Río Piura.
+
+Es un Dashboard web interactivo desarrollado con **React 18**, utilizando una interfaz **Civic Tech Light Mode**.
+
+La aplicación permite:
+
+* Monitorear el nivel del agua en tiempo real.
+* Visualizar el estado de riesgo: Verde, Amarillo y Rojo.
+* Mostrar sensores mediante un mapa GIS.
+* Visualizar gráficos de nivel de agua.
+* Recibir información mediante WebSockets.
+* Consultar alertas enviadas a la población.
+
+## 🛠️ Tecnologías
+
+| Tecnología              | Uso                                        |
+| ----------------------- | ------------------------------------------ |
+| React 18                | Desarrollo de componentes e interfaz       |
+| Tailwind CSS            | Diseño y estilos responsivos               |
+| Recharts                | Gráficos en tiempo real                    |
+| Leaflet / React-Leaflet | Mapas interactivos                         |
+| Lucide React            | Iconos                                     |
+| WebSocket API           | Comunicación en tiempo real con el Backend |
+
+## ⚡ Instalación
+
+### 1. Clonar repositorio
+
+```bash
+git clone https://github.com/sheilajpm/piura-alerta-frontend.git
+cd piura-alerta-frontend
+```
+
+### 2. Instalar dependencias
+
+```bash
+npm install
+```
+
+### 3. Ejecutar en desarrollo
+
+```bash
+npm run dev
+```
+
+Abrir en el navegador:
+
+```text
+http://localhost:5173
+```
+
+### 4. Compilar para producción
+
+```bash
+npm run build
+```
+
+## 🔌 Conexión con Backend
+
+El Frontend recibe información en tiempo real mediante WebSockets:
+
+```text
+ws://localhost:8080
+```
+
+## 📊 Funcionalidades principales
+
+* Dashboard de monitoreo.
+* Indicadores KPI.
+* Mapa GIS.
+* Gráfico de nivel de agua.
+* Semáforo de riesgo.
+* Registro de alertas.
+* Visualización de albergues.
+* Reportes.
+* Comunicación en tiempo real.
