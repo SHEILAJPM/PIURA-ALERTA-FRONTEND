@@ -1,36 +1,55 @@
 import React from "react";
 
-function AlertCard() {
-    return (
+const CONTENIDO = {
+  normal: {
+    icono: "✓",
+    color: "var(--color-normal)",
+    bg: "var(--color-normal-soft)",
+    titulo: "No existen alertas activas",
+    detalle: "El sistema no ha detectado condiciones que representen peligro para la población.",
+  },
+  prealerta: {
+    icono: "⚠",
+    color: "var(--color-prealerta)",
+    bg: "var(--color-prealerta-soft)",
+    titulo: "Prealerta: nivel del río en ascenso",
+    detalle: "Mantente atento a las próximas actualizaciones y evita acercarte al cauce del río.",
+  },
+  alerta_roja: {
+    icono: "🚨",
+    color: "var(--color-alerta)",
+    bg: "var(--color-alerta-soft)",
+    titulo: "Alerta roja: riesgo de desborde",
+    detalle: "Dirígete a una zona segura o al albergue más cercano. Sigue las indicaciones de las autoridades.",
+  },
+};
+
+function AlertCard({ estado = "normal" }) {
+  const actual = CONTENIDO[estado] ?? CONTENIDO.normal;
+
+  return (
+    <div
+      id="alertas"
+      className="rounded-2xl border-l-4 shadow-sm p-5"
+      style={{ backgroundColor: "var(--color-surface)", borderColor: actual.color }}
+    >
+      <div className="flex gap-4">
         <div
-            id="alertas"
-            className="bg-white rounded-2xl border-l-4 border-[#4F8A5B] shadow-sm p-5"
+          className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
+          style={{ backgroundColor: actual.bg, color: actual.color }}
         >
-
-            <div className="flex gap-4">
-
-                <div className="text-2xl">
-                    ✓
-                </div>
-
-                <div>
-
-                    <h3 className="font-bold text-[#263238]">
-                        No existen alertas activas
-                    </h3>
-
-                    <p className="text-sm text-gray-500 mt-1">
-                        El sistema no ha detectado actualmente
-                        condiciones que representen peligro para
-                        la población.
-                    </p>
-
-                </div>
-
-            </div>
-
+          {actual.icono}
         </div>
-    );
+
+        <div>
+          <h3 className="font-bold">{actual.titulo}</h3>
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+            {actual.detalle}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default AlertCard;

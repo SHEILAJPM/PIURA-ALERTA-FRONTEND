@@ -1,51 +1,28 @@
 import React from "react";
 
-function StatusBadge({ status = "normal" }) {
+const ESTADOS = {
+  normal: { text: "Nivel normal", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
+  prealerta: { text: "Prealerta", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },
+  alerta_roja: { text: "Alerta roja", color: "var(--color-alerta)", bg: "var(--color-alerta-soft)" },
+};
 
-  const styles = {
-    normal: {
-      color: "#4F8A5B",
-      background: "#E8F5E9",
-      text: "Nivel normal",
-    },
-
-    precaucion: {
-      color: "#F2994A",
-      background: "#FFF3E0",
-      text: "Precaución",
-    },
-
-    alerta: {
-      color: "#D64545",
-      background: "#FDECEC",
-      text: "Alerta",
-    },
-
-    peligro: {
-      color: "#8B0000",
-      background: "#F8D7DA",
-      text: "Peligro alto",
-    },
+function StatusBadge({ status }) {
+  const actual = ESTADOS[status] ?? {
+    text: "Sin datos",
+    color: "var(--color-text-muted)",
+    bg: "var(--color-surface-alt)",
   };
-
-  const current = styles[status] || styles.normal;
+  const esAlertaRoja = status === "alerta_roja";
 
   return (
     <span
-      className="inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm"
-      style={{
-        color: current.color,
-        backgroundColor: current.background,
-      }}
+      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${
+        esAlertaRoja ? "animate-pulse-alert" : ""
+      }`}
+      style={{ color: actual.color, backgroundColor: actual.bg }}
     >
-      <span
-        className="w-2.5 h-2.5 rounded-full"
-        style={{
-          backgroundColor: current.color,
-        }}
-      />
-
-      {current.text}
+      <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: actual.color }} />
+      {actual.text}
     </span>
   );
 }
