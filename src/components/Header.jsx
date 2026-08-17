@@ -10,6 +10,8 @@ const links = [
   { to: "/reportes", label: "Reportes" },
 ];
 
+const ROLES_PANEL_OPERARIO = ["operario", "defensa_civil", "administrador"];
+
 const ESTADOS_CONEXION = {
   open: { color: "bg-emerald-400", texto: "En vivo" },
   connecting: { color: "bg-amber-400 animate-pulse", texto: "Conectando" },
@@ -60,6 +62,11 @@ function Header() {
                   {link.label}
                 </NavLink>
               ))}
+              {usuario && ROLES_PANEL_OPERARIO.includes(usuario.rol) && (
+                <NavLink to="/panel-operario" className={navClass}>
+                  Panel
+                </NavLink>
+              )}
             </nav>
 
             {usuario ? (

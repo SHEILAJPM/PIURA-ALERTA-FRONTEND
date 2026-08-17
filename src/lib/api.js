@@ -25,6 +25,10 @@ export function getSensores() {
   return apiFetch("/api/sensores");
 }
 
+export function getEstadoSensores() {
+  return apiFetch("/api/sensores/estado");
+}
+
 export function getUltimaLectura(sensorCodigo = SENSOR_POR_DEFECTO) {
   return apiFetch(`/api/lecturas/ultima?sensor=${encodeURIComponent(sensorCodigo)}`);
 }

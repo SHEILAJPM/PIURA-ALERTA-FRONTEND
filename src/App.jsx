@@ -4,9 +4,11 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
 import AuthModal from "./components/AuthModal";
 import Home from "./pages/Home";
 import Reportes from "./pages/Reportes";
+import PanelOperario from "./pages/PanelOperario";
 
 const Mapa = React.lazy(() => import("./pages/Mapa"));
 
@@ -32,6 +34,9 @@ function App() {
                   }
                 />
                 <Route path="/reportes" element={<Reportes />} />
+                <Route element={<ProtectedRoute roles={["operario", "defensa_civil", "administrador"]} />}>
+                  <Route path="/panel-operario" element={<PanelOperario />} />
+                </Route>
               </Route>
             </Routes>
           </BrowserRouter>
