@@ -4,7 +4,14 @@ import KpiCard, { KpiCardSkeleton } from "../KpiCard";
 
 describe("KpiCard", () => {
   it("muestra título, valor y descripción", () => {
-    render(<KpiCard title="Nivel del río" value="12.5 cm" description="Registro actual" icon="🌊" />);
+    render(
+      <KpiCard
+        title="Nivel del río"
+        value="12.5 cm"
+        description="Registro actual"
+        icon={<i className="bi bi-water" />}
+      />
+    );
     expect(screen.getByText("Nivel del río")).toBeInTheDocument();
     expect(screen.getByText("12.5 cm")).toBeInTheDocument();
     expect(screen.getByText("Registro actual")).toBeInTheDocument();

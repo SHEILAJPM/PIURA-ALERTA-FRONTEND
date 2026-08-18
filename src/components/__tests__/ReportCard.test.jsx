@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import ReportCard from "../ReportCard";
 import AuthModal from "../AuthModal";
 import { AuthProvider } from "../../context/AuthContext";
@@ -17,10 +18,12 @@ const reporteBase = {
 
 function renderCard(reporte, onLike = vi.fn()) {
   return render(
-    <AuthProvider>
-      <ReportCard reporte={reporte} onLike={onLike} />
-      <AuthModal />
-    </AuthProvider>
+    <MemoryRouter>
+      <AuthProvider>
+        <ReportCard reporte={reporte} onLike={onLike} />
+        <AuthModal />
+      </AuthProvider>
+    </MemoryRouter>
   );
 }
 
@@ -32,7 +35,7 @@ describe("ReportCard", () => {
     renderCard(reporteBase, onLike);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: /3/ }));
+      fireEvent.click(screen.getByRole("button", { name: "Dar me gusta" }));
     });
 
     expect(onLike).not.toHaveBeenCalled();
@@ -59,6 +62,6 @@ describe("ReportCard", () => {
       JSON.stringify({ token: "t", usuario: { id: "u1", nombre: "Sheila" } })
     );
     renderCard({ ...reporteBase, te_gusta: true });
-    expect(screen.getByRole("button")).toHaveTextContent("❤️");
+    expect(screen.getByRole("button").querySelector(".bi-heart-fill")).not.toBeNull();
   });
 });

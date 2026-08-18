@@ -5,8 +5,15 @@ import "leaflet/dist/leaflet.css";
 import { useZonasRiesgo } from "../hooks/useZonasRiesgo";
 import { useAlbergues } from "../hooks/useAlbergues";
 import { useSensores } from "../hooks/useSensores";
+import { useEstadoSensores } from "../hooks/useEstadoSensores";
 import Skeleton from "../components/Skeleton";
 import ErrorBanner from "../components/ErrorBanner";
+import { useTheme } from "../context/ThemeContext";
+
+function formatearHora(iso) {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
+}
 
 const CENTRO_PIURA = [-5.1945, -80.6328];
 
@@ -16,13 +23,13 @@ const COLOR_RIESGO = {
   alto: "#c1272d",
 };
 
-function crearIconoEmoji(emoji, color) {
+function crearIconoBootstrap(claseIcono, color) {
   return L.divIcon({
-    html: `<div style="background:${color};width:32px;height:32px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 1px 4px rgba(0,0,0,0.35);border:2px solid white;">${emoji}</div>`,
+    html: `<div style="background:${color};width:34px;height:34px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:16px;color:white;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2.5px solid white;"><i class="bi ${claseIcono}"></i></div>`,
     className: "",
-    iconSize: [32, 32],
-    iconAnchor: [16, 16],
-    popupAnchor: [0, -16],
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
+    popupAnchor: [0, -17],
   });
 }
 
@@ -38,9 +45,11 @@ function zonasAFeatureCollection(zonas) {
 }
 
 function Mapa() {
+  const { theme } = useTheme();
   const { data: zonas, loading: cargandoZonas, error: errorZonas } = useZonasRiesgo();
   const { data: albergues, loading: cargandoAlbergues, error: errorAlbergues } = useAlbergues();
   const { data: sensores, loading: cargandoSensores, error: errorSensores } = useSensores();
+  const { data: estadoSensores } = useEstadoSensores();
 
   const featureCollection = useMemo(() => zonasAFeatureCollection(zonas), [zonas]);
   const cargando = cargandoZonas || cargandoAlbergues || cargandoSensores;
@@ -62,21 +71,40 @@ function Mapa() {
         </p>
       </section>
 
-      <div className="flex flex-wrap gap-4 mb-4 text-sm">
+      <div
+        className="flex flex-wrap gap-x-5 gap-y-2 mb-4 text-sm rounded-2xl border px-4 py-3"
+        style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+      >
         <span className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLOR_RIESGO.bajo }} />
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: COLOR_RIESGO.bajo }} />
           Riesgo bajo
         </span>
         <span className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLOR_RIESGO.medio }} />
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: COLOR_RIESGO.medio }} />
           Riesgo medio
         </span>
         <span className="flex items-center gap-2">
-          <span className="w-3 h-3 rounded-full" style={{ backgroundColor: COLOR_RIESGO.alto }} />
+          <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: COLOR_RIESGO.alto }} />
           Riesgo alto
         </span>
-        <span className="flex items-center gap-2">🏠 Albergue</span>
-        <span className="flex items-center gap-2">📡 Sensor</span>
+        <span className="flex items-center gap-2">
+          <span
+            className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] text-white shrink-0"
+            style={{ backgroundColor: "#0b3d62" }}
+          >
+            <i className="bi bi-house-door-fill" aria-hidden="true" />
+          </span>
+          Albergue
+        </span>
+        <span className="flex items-center gap-2">
+          <span
+            className="w-5 h-5 rounded-full flex items-center justify-center text-[11px] text-white shrink-0"
+            style={{ backgroundColor: COLOR_RIESGO.alto }}
+          >
+            <i className="bi bi-broadcast-pin" aria-hidden="true" />
+          </span>
+          Sensor
+        </span>
       </div>
 
       {error && (
@@ -91,8 +119,9 @@ function Mapa() {
         ) : (
           <MapContainer center={CENTRO_PIURA} zoom={13} style={{ height: "520px", width: "100%" }}>
             <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              key={theme}
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+              url={`https://{s}.basemaps.cartocdn.com/${theme === "dark" ? "dark_all" : "light_all"}/{z}/{x}/{y}{r}.png`}
             />
 
             {featureCollection.features.length > 0 && (
@@ -116,7 +145,7 @@ function Mapa() {
               <Marker
                 key={albergue.id}
                 position={[albergue.ubicacion.coordinates[1], albergue.ubicacion.coordinates[0]]}
-                icon={crearIconoEmoji("🏠", "#0b3d62")}
+                icon={crearIconoBootstrap("bi-house-door-fill", "#0b3d62")}
               >
                 <Popup>
                   <strong>{albergue.nombre}</strong>
@@ -128,34 +157,52 @@ function Mapa() {
               </Marker>
             ))}
 
-            {sensores?.map((sensor) => (
-              <Marker
-                key={sensor.id}
-                position={[sensor.ubicacion.coordinates[1], sensor.ubicacion.coordinates[0]]}
-                icon={crearIconoEmoji("📡", "#c1272d")}
-              >
-                <Popup>
-                  <strong>{sensor.nombre}</strong>
-                  <br />
-                  Sensor {sensor.codigo}
-                  <br />
-                  Prealerta: {sensor.nivel_prealerta_cm} cm · Alerta roja: {sensor.nivel_alerta_roja_cm} cm
-                </Popup>
-              </Marker>
-            ))}
+            {sensores?.map((sensor) => {
+              const estado = estadoSensores?.find((s) => s.codigo === sensor.codigo);
+              const enLinea = estado ? estado.en_linea : true;
+
+              return (
+                <Marker
+                  key={sensor.id}
+                  position={[sensor.ubicacion.coordinates[1], sensor.ubicacion.coordinates[0]]}
+                  icon={crearIconoBootstrap(enLinea ? "bi-broadcast-pin" : "bi-tools", enLinea ? "#c1272d" : "#6b7280")}
+                >
+                  <Popup>
+                    <strong>{sensor.nombre}</strong>
+                    <br />
+                    Sensor {sensor.codigo}
+                    <br />
+                    Prealerta: {sensor.nivel_prealerta_cm} cm · Alerta roja: {sensor.nivel_alerta_roja_cm} cm
+                    <br />
+                    {enLinea ? (
+                      <span style={{ color: "#2f9e44" }}>
+                        <i className="bi bi-check-circle-fill" aria-hidden="true" /> En línea
+                      </span>
+                    ) : (
+                      <span style={{ color: "#c1272d" }}>
+                        <i className="bi bi-tools" aria-hidden="true" /> Sin señal
+                        {estado?.ultima_lectura?.medido_en &&
+                          ` desde las ${formatearHora(estado.ultima_lectura.medido_en)}`}
+                      </span>
+                    )}
+                  </Popup>
+                </Marker>
+              );
+            })}
           </MapContainer>
         )}
       </div>
 
-      {!cargando && albergues?.length === 0 && (
-        <p className="text-sm mt-3" style={{ color: "var(--color-text-muted)" }}>
-          Aún no hay albergues registrados.
-        </p>
-      )}
-      {!cargando && featureCollection.features.length === 0 && (
-        <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
-          Aún no hay zonas de riesgo registradas.
-        </p>
+      {!cargando && (albergues?.length === 0 || featureCollection.features.length === 0) && (
+        <div
+          className="mt-4 rounded-2xl border p-4 text-sm"
+          style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)", color: "var(--color-text-muted)" }}
+        >
+          {albergues?.length === 0 && <p>Aún no hay albergues registrados.</p>}
+          {featureCollection.features.length === 0 && (
+            <p className={albergues?.length === 0 ? "mt-1" : ""}>Aún no hay zonas de riesgo registradas.</p>
+          )}
+        </div>
       )}
     </main>
   );

@@ -25,6 +25,10 @@ export function getSensores() {
   return apiFetch("/api/sensores");
 }
 
+export function getEstadoSensores() {
+  return apiFetch("/api/sensores/estado");
+}
+
 export function getUltimaLectura(sensorCodigo = SENSOR_POR_DEFECTO) {
   return apiFetch(`/api/lecturas/ultima?sensor=${encodeURIComponent(sensorCodigo)}`);
 }
@@ -35,6 +39,13 @@ export function getHistorico(sensorCodigo = SENSOR_POR_DEFECTO, minutos = 180) {
 
 export function getAlbergues() {
   return apiFetch("/api/albergues");
+}
+
+export function actualizarOcupacionAlbergue(albergueId, ocupacionActual) {
+  return apiFetch(`/api/albergues/${albergueId}/ocupacion`, {
+    method: "PATCH",
+    body: JSON.stringify({ ocupacion_actual: ocupacionActual }),
+  });
 }
 
 export function getZonasRiesgo() {
@@ -56,6 +67,13 @@ export function darLike(reporteId) {
   return apiFetch(`/api/reportes-ciudadanos/${reporteId}/like`, { method: "POST" });
 }
 
+export function actualizarEstadoReporte(reporteId, estado) {
+  return apiFetch(`/api/reportes-ciudadanos/${reporteId}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ estado }),
+  });
+}
+
 export function registrarUsuario({ nombre, dni, telefono, direccion, correo, password }) {
   return apiFetch("/api/auth/registro", {
     method: "POST",
@@ -72,4 +90,58 @@ export function iniciarSesion({ correo, password }) {
 
 export function obtenerPerfil() {
   return apiFetch("/api/auth/yo");
+}
+
+export function getUsuarios() {
+  return apiFetch("/api/usuarios");
+}
+
+export function actualizarRolUsuario(usuarioId, rol) {
+  return apiFetch(`/api/usuarios/${usuarioId}/rol`, {
+    method: "PATCH",
+    body: JSON.stringify({ rol }),
+  });
+}
+
+export function getAuditoria(limite = 100) {
+  return apiFetch(`/api/auditoria?limite=${limite}`);
+}
+
+export function getTickets() {
+  return apiFetch("/api/tickets");
+}
+
+export function crearTicket({ sensor_id, titulo, descripcion, prioridad }) {
+  return apiFetch("/api/tickets", {
+    method: "POST",
+    body: JSON.stringify({ sensor_id, titulo, descripcion, prioridad }),
+  });
+}
+
+export function actualizarEstadoTicket(ticketId, estado) {
+  return apiFetch(`/api/tickets/${ticketId}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ estado }),
+  });
+}
+
+export function crearSensor({ codigo, nombre, lon, lat, nivel_prealerta_cm, nivel_alerta_roja_cm }) {
+  return apiFetch("/api/sensores", {
+    method: "POST",
+    body: JSON.stringify({ codigo, nombre, lon, lat, nivel_prealerta_cm, nivel_alerta_roja_cm }),
+  });
+}
+
+export function actualizarCalibracionSensor(sensorId, { nivel_prealerta_cm, nivel_alerta_roja_cm }) {
+  return apiFetch(`/api/sensores/${sensorId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ nivel_prealerta_cm, nivel_alerta_roja_cm }),
+  });
+}
+
+export function difundirAlertaManual(mensaje) {
+  return apiFetch("/api/alertas/difundir", {
+    method: "POST",
+    body: JSON.stringify({ mensaje }),
+  });
 }

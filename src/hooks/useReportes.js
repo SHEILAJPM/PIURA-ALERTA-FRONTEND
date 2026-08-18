@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getReportes, crearReporte, darLike as darLikeApi } from "../lib/api";
+import { getReportes, crearReporte, darLike as darLikeApi, actualizarEstadoReporte } from "../lib/api";
 import { useWebSocketEvent } from "../context/WebSocketContext";
 
 export function useReportes(limite = 30) {
@@ -48,5 +48,14 @@ export function useReportes(limite = 30) {
     );
   }
 
-  return { reportes, loading, error, enviando, enviarReporte, darLike };
+  async function actualizarEstado(reporteId, estado) {
+    const resultado = await actualizarEstadoReporte(reporteId, estado);
+    setReportes((prev) =>
+      prev.map((reporte) =>
+        reporte.id === reporteId ? { ...reporte, estado: resultado.estado } : reporte
+      )
+    );
+  }
+
+  return { reportes, loading, error, enviando, enviarReporte, darLike, actualizarEstado };
 }

@@ -1,14 +1,30 @@
 import React, { Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "./context/ThemeContext";
 import { WebSocketProvider } from "./context/WebSocketContext";
 import { AuthProvider } from "./context/AuthContext";
 import Layout from "./components/Layout";
+import AdminLayout from "./components/AdminLayout";
 import AuthModal from "./components/AuthModal";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
 import Reportes from "./pages/Reportes";
+import { ROLES_PANEL_ADMIN } from "./constants/roles";
 
 const Mapa = React.lazy(() => import("./pages/Mapa"));
+const ModeracionReportes = React.lazy(() => import("./pages/admin/Reportes"));
+const AdminAlbergues = React.lazy(() => import("./pages/admin/Albergues"));
+const CatalogoNodos = React.lazy(() => import("./pages/admin/Sensores"));
+const Telemetria = React.lazy(() => import("./pages/admin/Telemetria"));
+const Calibracion = React.lazy(() => import("./pages/admin/Calibracion"));
+const Usuarios = React.lazy(() => import("./pages/admin/Usuarios"));
+const Auditoria = React.lazy(() => import("./pages/admin/Auditoria"));
+const Tickets = React.lazy(() => import("./pages/admin/Tickets"));
+const Despacho = React.lazy(() => import("./pages/admin/Despacho"));
+
+function conSuspenso(elemento) {
+  return <Suspense fallback={<div className="p-8 h-150" />}>{elemento}</Suspense>;
+}
 
 function App() {
   return (
@@ -33,9 +49,24 @@ function App() {
                 />
                 <Route path="/reportes" element={<Reportes />} />
               </Route>
+
+              <Route element={<ProtectedRoute roles={ROLES_PANEL_ADMIN} />}>
+                <Route path="/admin" element={<AdminLayout />}>
+                  <Route index element={<Navigate to="reportes" replace />} />
+                  <Route path="reportes" element={conSuspenso(<ModeracionReportes />)} />
+                  <Route path="albergues" element={conSuspenso(<AdminAlbergues />)} />
+                  <Route path="sensores" element={conSuspenso(<CatalogoNodos />)} />
+                  <Route path="telemetria" element={conSuspenso(<Telemetria />)} />
+                  <Route path="calibracion" element={conSuspenso(<Calibracion />)} />
+                  <Route path="usuarios" element={conSuspenso(<Usuarios />)} />
+                  <Route path="auditoria" element={conSuspenso(<Auditoria />)} />
+                  <Route path="tickets" element={conSuspenso(<Tickets />)} />
+                  <Route path="despacho" element={conSuspenso(<Despacho />)} />
+                </Route>
+              </Route>
             </Routes>
+            <AuthModal />
           </BrowserRouter>
-          <AuthModal />
         </AuthProvider>
       </WebSocketProvider>
     </ThemeProvider>

@@ -122,18 +122,19 @@ function ReportForm({ onEnviar, enviando }) {
         </div>
       )}
 
-      <label className="text-sm font-semibold cursor-pointer" style={{ color: "var(--color-primary)" }}>
-        📷 {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
+      <label className="text-sm font-semibold cursor-pointer flex items-center gap-1.5" style={{ color: "var(--color-primary)" }}>
+        <i className="bi bi-camera" aria-hidden="true" /> {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
         <input type="file" accept="image/*" onChange={manejarSeleccionFoto} className="hidden" />
       </label>
 
       <button
         type="button"
         onClick={obtenerUbicacion}
-        className="block text-sm font-semibold"
+        className="flex items-center gap-1.5 text-sm font-semibold"
         style={{ color: "var(--color-primary)" }}
       >
-        {ubicacion ? "📍 Ubicación adjunta" : "📍 Compartir mi ubicación"}
+        <i className={`bi ${ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"}`} aria-hidden="true" />
+        {ubicacion ? "Ubicación adjunta" : "Compartir mi ubicación"}
       </button>
 
       {errorLocal && (

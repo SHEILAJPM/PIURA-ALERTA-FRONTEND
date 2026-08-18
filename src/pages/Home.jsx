@@ -11,6 +11,8 @@ import { recommendations } from "../data/content";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
 
+const ICONOS_RECOMENDACION = ["bi-broadcast", "bi-water", "bi-map", "bi-megaphone"];
+
 function formatearHora(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
@@ -53,7 +55,40 @@ function Home() {
         </p>
       </section>
 
-      <RiverStatus />
+      <section className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <div className="lg:col-span-2">
+          <RiverStatus />
+        </div>
+
+        <div
+          className="lg:col-span-3 rounded-3xl border p-6"
+          style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+        >
+          <h2 className="text-xl font-bold">Tendencia del nivel (últimas 3 horas)</h2>
+          <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+            Línea punteada: umbrales de prealerta y alerta roja del sensor.
+          </p>
+          <div className="mt-4">
+            {cargandoHistorico ? (
+              <Skeleton className="h-48 w-full" />
+            ) : errorHistorico ? (
+              <p className="text-sm" style={{ color: "var(--color-alerta)" }}>
+                No se pudo cargar el histórico de lecturas.
+              </p>
+            ) : (
+              <LevelChart
+                puntos={puntos}
+                umbrales={
+                  sensorActivo && {
+                    prealerta: sensorActivo.nivel_prealerta_cm,
+                    alertaRoja: sensorActivo.nivel_alerta_roja_cm,
+                  }
+                }
+              />
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {cargandoKpis ? (
@@ -64,57 +99,28 @@ function Home() {
               title="Nivel del río"
               value={`${lectura?.nivel_cm ?? "—"} cm`}
               description="Registro actual"
-              icon="🌊"
+              icon={<i className="bi bi-water" aria-hidden="true" />}
             />
             <KpiCard
               title="Tendencia"
               value={calcularTendencia(lectura?.prediccion)}
               description="Últimas mediciones"
-              icon="📈"
+              icon={<i className="bi bi-graph-up-arrow" aria-hidden="true" />}
             />
             <KpiCard
               title="Puntos activos"
               value={sensores?.filter((s) => s.activo).length ?? "—"}
               description="Sensores monitoreados"
-              icon="📍"
+              icon={<i className="bi bi-geo-alt-fill" aria-hidden="true" />}
             />
             <KpiCard
               title="Actualización"
               value={formatearHora(lectura?.medido_en)}
               description="Último registro"
-              icon="🕐"
+              icon={<i className="bi bi-clock-history" aria-hidden="true" />}
             />
           </>
         )}
-      </section>
-
-      <section
-        className="mt-8 rounded-2xl border p-6"
-        style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
-      >
-        <h2 className="text-xl font-bold">Tendencia del nivel (últimas 3 horas)</h2>
-        <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
-          Línea punteada: umbrales de prealerta y alerta roja del sensor.
-        </p>
-        <div className="mt-4">
-          {cargandoHistorico ? (
-            <Skeleton className="h-48 w-full" />
-          ) : errorHistorico ? (
-            <p className="text-sm" style={{ color: "var(--color-alerta)" }}>
-              No se pudo cargar el histórico de lecturas.
-            </p>
-          ) : (
-            <LevelChart
-              puntos={puntos}
-              umbrales={
-                sensorActivo && {
-                  prealerta: sensorActivo.nivel_prealerta_cm,
-                  alertaRoja: sensorActivo.nivel_alerta_roja_cm,
-                }
-              }
-            />
-          )}
-        </div>
       </section>
 
       <section className="mt-8">
@@ -128,13 +134,41 @@ function Home() {
       </section>
 
       <section
-        className="mt-8 mb-10 rounded-2xl p-6 border"
-        style={{ backgroundColor: "var(--color-prealerta-soft)", borderColor: "var(--color-prealerta)" }}
+        className="mt-8 mb-10 rounded-3xl p-6 border"
+        style={{ backgroundColor: "var(--color-dorado-soft)", borderColor: "var(--color-dorado)" }}
       >
-        <h2 className="text-xl font-bold">⚠️ Recomendaciones ante lluvias</h2>
-        <ul className="mt-4 space-y-3" style={{ color: "var(--color-text)" }}>
-          {recommendations.map((recomendacion) => (
-            <li key={recomendacion}>• {recomendacion}</li>
+        <h2 className="text-xl font-bold">Predicción y recomendaciones</h2>
+
+        {lectura?.prediccion?.disponible ? (
+          <p className="mt-2 text-sm" style={{ color: "var(--color-text)" }}>
+            Si la tendencia actual continúa, el sensor alcanzaría el umbral de{" "}
+            <strong>alerta roja en ~{lectura.prediccion.minutosParaAlerta} min</strong>. Ten en
+            cuenta estas recomendaciones:
+          </p>
+        ) : (
+          <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
+            Por ahora no hay una proyección de crecida activa. Aun así, ten en cuenta estas
+            recomendaciones:
+          </p>
+        )}
+
+        <ul className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {recommendations.map((recomendacion, i) => (
+            <li
+              key={recomendacion}
+              className="flex items-start gap-3 rounded-2xl p-3"
+              style={{ backgroundColor: "var(--color-surface)" }}
+            >
+              <span
+                className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
+                style={{ backgroundColor: "var(--color-dorado-soft)", color: "var(--color-dorado)" }}
+              >
+                <i className={`bi ${ICONOS_RECOMENDACION[i % ICONOS_RECOMENDACION.length]}`} aria-hidden="true" />
+              </span>
+              <span className="text-sm pt-1.5" style={{ color: "var(--color-text)" }}>
+                {recomendacion}
+              </span>
+            </li>
           ))}
         </ul>
       </section>

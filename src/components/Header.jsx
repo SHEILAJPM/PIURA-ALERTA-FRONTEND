@@ -1,10 +1,22 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import { useWebSocketStatus } from "../context/WebSocketContext";
 import { useAuth } from "../context/AuthContext";
+import { ROLES_PANEL_ADMIN } from "../constants/roles";
 
-const links = [
+function useRelojEnVivo() {
+  const [hora, setHora] = useState(() => new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setHora(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return hora.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+}
+
+const LINKS_BASE = [
   { to: "/", label: "Inicio" },
   { to: "/mapa", label: "Mapa" },
   { to: "/reportes", label: "Reportes" },
@@ -24,6 +36,17 @@ function navClassMobile({ isActive }) {
   return `block py-2 transition font-medium ${isActive ? "text-white" : "text-white/70 hover:text-white"}`;
 }
 
+// El link a /admin lleva a una zona distinta (panel operativo, no público):
+// se marca con una insignia dorada en vez del estilo de nav plano, para que
+// se note que no es "una pestaña más".
+function navClassAdmin({ isActive }) {
+  return `text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full transition ${
+    isActive ? "text-white" : "text-white/85 hover:text-white"
+  }`;
+}
+
+const estiloAdminBadge = { backgroundColor: "color-mix(in srgb, var(--color-dorado) 35%, transparent)" };
+
 function IconoMenu({ abierto }) {
   return (
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
@@ -37,6 +60,11 @@ function Header() {
   const conexion = ESTADOS_CONEXION[wsStatus] ?? ESTADOS_CONEXION.closed;
   const { usuario, logout, abrirModal } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const hora = useRelojEnVivo();
+  const links =
+    usuario && ROLES_PANEL_ADMIN.includes(usuario.rol)
+      ? [...LINKS_BASE, { to: "/admin", label: "Admin" }]
+      : LINKS_BASE;
 
   function cerrarMenu() {
     setMenuAbierto(false);
@@ -45,7 +73,7 @@ function Header() {
   return (
     <header
       className="shadow-md sticky top-0 z-20 border-b-2"
-      style={{ backgroundColor: "var(--color-primary)", borderColor: "var(--color-dorado)" }}
+      style={{ backgroundColor: "var(--color-brand-chrome)", borderColor: "var(--color-dorado)" }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
@@ -70,37 +98,52 @@ function Header() {
             </div>
           </div>
 
-          <div className="hidden sm:flex items-center gap-4 sm:gap-6">
+          <div className="hidden sm:flex items-center">
             <nav className="flex items-center gap-3 sm:gap-6 text-sm sm:text-base">
-              {links.map((link) => (
-                <NavLink key={link.to} to={link.to} end={link.to === "/"} className={navClass}>
-                  {link.label}
-                </NavLink>
-              ))}
+              {links.map((link) =>
+                link.to === "/admin" ? (
+                  <NavLink key={link.to} to={link.to} className={navClassAdmin} style={estiloAdminBadge}>
+                    {link.label}
+                  </NavLink>
+                ) : (
+                  <NavLink key={link.to} to={link.to} end={link.to === "/"} className={navClass}>
+                    {link.label}
+                  </NavLink>
+                )
+              )}
             </nav>
 
-            {usuario ? (
-              <div className="flex items-center gap-2 sm:gap-3 text-sm text-white/90">
-                <span className="hidden sm:inline">{usuario.nombre}</span>
+            <div className="flex items-center gap-4 sm:gap-5 ml-4 sm:ml-6 pl-4 sm:pl-6 border-l border-white/15">
+              <span
+                className="hidden lg:inline font-mono-data text-sm tabular-nums"
+                style={{ color: "var(--color-dorado)" }}
+              >
+                {hora}
+              </span>
+
+              {usuario ? (
+                <div className="flex items-center gap-2 sm:gap-3 text-sm text-white/90">
+                  <span className="hidden sm:inline">{usuario.nombre}</span>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="font-medium text-white/70 hover:text-white transition"
+                  >
+                    Cerrar sesión
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={logout}
+                  onClick={() => abrirModal("login")}
                   className="font-medium text-white/70 hover:text-white transition"
                 >
-                  Cerrar sesión
+                  Iniciar sesión
                 </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => abrirModal("login")}
-                className="font-medium text-white/70 hover:text-white transition"
-              >
-                Iniciar sesión
-              </button>
-            )}
+              )}
 
-            <ThemeToggle />
+              <ThemeToggle />
+            </div>
           </div>
 
           <button
@@ -117,17 +160,29 @@ function Header() {
         {menuAbierto && (
           <div className="sm:hidden pb-4 border-t border-white/10 pt-3">
             <nav className="flex flex-col">
-              {links.map((link) => (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  end={link.to === "/"}
-                  className={navClassMobile}
-                  onClick={cerrarMenu}
-                >
-                  {link.label}
-                </NavLink>
-              ))}
+              {links.map((link) =>
+                link.to === "/admin" ? (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    className="block py-2 transition font-bold"
+                    style={{ color: "var(--color-dorado)" }}
+                    onClick={cerrarMenu}
+                  >
+                    {link.label} · modo operativo
+                  </NavLink>
+                ) : (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    end={link.to === "/"}
+                    className={navClassMobile}
+                    onClick={cerrarMenu}
+                  >
+                    {link.label}
+                  </NavLink>
+                )
+              )}
             </nav>
 
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">

@@ -1,4 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600;700&display=swap");
+@import "bootstrap-icons/font/bootstrap-icons.css";
 @import "tailwindcss";
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -15,6 +16,9 @@
   --color-primary: #0a2f52;
   --color-primary-hover: #082541;
   --color-primary-soft: #e2ebf3;
+
+  /* Azul institucional fijo para el header/footer: no se invierte en modo oscuro. */
+  --color-brand-chrome: #0a2f52;
 
   /* Dorado del escudo (corona, castillo): acento, nunca color de alerta. */
   --color-dorado: #b8862e;

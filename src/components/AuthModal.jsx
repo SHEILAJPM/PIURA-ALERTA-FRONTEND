@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { ROLES_PANEL_ADMIN } from "../constants/roles";
 
 const inputStyle = {
   borderColor: "var(--color-border)",
@@ -9,6 +11,7 @@ const inputStyle = {
 
 function CampoLogin({ onExito }) {
   const { login } = useAuth();
+  const navigate = useNavigate();
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
@@ -19,7 +22,12 @@ function CampoLogin({ onExito }) {
     setEnviando(true);
     setError(null);
     try {
-      await login(correo, password);
+      const usuario = await login(correo, password);
+      // Cuentas operativas (admin/operario/defensa civil) van directo al
+      // panel: no tiene sentido dejarlas en la pantalla pública tras el login.
+      if (usuario && ROLES_PANEL_ADMIN.includes(usuario.rol)) {
+        navigate("/admin");
+      }
       onExito?.();
     } catch (err) {
       setError(err.message);

@@ -4,8 +4,12 @@ import Skeleton from "./Skeleton";
 function KpiCard({ title, value, description, icon }) {
   return (
     <div
-      className="rounded-2xl border p-5 hover:shadow-md transition"
-      style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+      className="rounded-2xl border border-t-[3px] p-5 hover:shadow-md transition"
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-border)",
+        borderTopColor: "var(--color-dorado)",
+      }}
     >
       <div className="flex items-start justify-between">
         <div>

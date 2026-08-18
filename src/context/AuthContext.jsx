@@ -30,6 +30,7 @@ export function AuthProvider({ children }) {
     const { token, usuario } = await iniciarSesion({ correo, password });
     setSesion({ token, usuario });
     setModal(null);
+    return usuario;
   }
 
   async function registro(datos) {

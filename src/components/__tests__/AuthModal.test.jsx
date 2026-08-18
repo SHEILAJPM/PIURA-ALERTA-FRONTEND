@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import AuthModal from "../AuthModal";
 import { AuthProvider, useAuth } from "../../context/AuthContext";
 
@@ -12,10 +13,12 @@ function BotonAbrir({ modo = "login" }) {
 
 function renderModal(modo) {
   return render(
-    <AuthProvider>
-      <BotonAbrir modo={modo} />
-      <AuthModal />
-    </AuthProvider>
+    <MemoryRouter>
+      <AuthProvider>
+        <BotonAbrir modo={modo} />
+        <AuthModal />
+      </AuthProvider>
+    </MemoryRouter>
   );
 }
 
@@ -24,9 +27,11 @@ describe("AuthModal", () => {
 
   it("no renderiza nada si el modal está cerrado", () => {
     render(
-      <AuthProvider>
-        <AuthModal />
-      </AuthProvider>
+      <MemoryRouter>
+        <AuthProvider>
+          <AuthModal />
+        </AuthProvider>
+      </MemoryRouter>
     );
     expect(screen.queryByRole("heading")).not.toBeInTheDocument();
   });

@@ -2,21 +2,21 @@ import React from "react";
 
 const CONTENIDO = {
   normal: {
-    icono: "✓",
+    icono: "bi-check-circle-fill",
     color: "var(--color-normal)",
     bg: "var(--color-normal-soft)",
     titulo: "No existen alertas activas",
     detalle: "El sistema no ha detectado condiciones que representen peligro para la población.",
   },
   prealerta: {
-    icono: "⚠",
+    icono: "bi-exclamation-triangle-fill",
     color: "var(--color-prealerta)",
     bg: "var(--color-prealerta-soft)",
     titulo: "Prealerta: nivel del río en ascenso",
     detalle: "Mantente atento a las próximas actualizaciones y evita acercarte al cauce del río.",
   },
   alerta_roja: {
-    icono: "🚨",
+    icono: "bi-exclamation-octagon-fill",
     color: "var(--color-alerta)",
     bg: "var(--color-alerta-soft)",
     titulo: "Alerta roja: riesgo de desborde",
@@ -38,7 +38,7 @@ function AlertCard({ estado = "normal" }) {
           className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
           style={{ backgroundColor: actual.bg, color: actual.color }}
         >
-          {actual.icono}
+          <i className={`bi ${actual.icono}`} aria-hidden="true" />
         </div>
 
         <div>

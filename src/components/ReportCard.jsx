@@ -73,10 +73,12 @@ function ReportCard({ reporte, onLike }) {
           type="button"
           onClick={manejarLike}
           disabled={enviandoLike}
+          aria-label={reporte.te_gusta ? "Quitar me gusta" : "Dar me gusta"}
           className="flex items-center gap-1.5 disabled:opacity-60"
           style={{ color: reporte.te_gusta ? "var(--color-alerta)" : "var(--color-text-muted)" }}
         >
-          {reporte.te_gusta ? "❤️" : "🤍"} {reporte.likes_count}
+          <i className={`bi ${reporte.te_gusta ? "bi-heart-fill" : "bi-heart"}`} aria-hidden="true" />{" "}
+          {reporte.likes_count}
         </button>
       </div>
     </article>
