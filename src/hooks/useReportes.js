@@ -1,17 +1,26 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getReportes, crearReporte, darLike as darLikeApi, actualizarEstadoReporte } from "../lib/api";
 import { useWebSocketEvent } from "../context/WebSocketContext";
 
 export function useReportes(limite = 30) {
   const [reportes, setReportes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cargandoMas, setCargandoMas] = useState(false);
+  // Si la primera página llega completa (== limite), asumimos que puede haber
+  // más hasta que una página venga corta — evita un COUNT(*) aparte solo para
+  // saber si mostrar el botón "Cargar más".
+  const [hayMas, setHayMas] = useState(true);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
   useEffect(() => {
     let activo = true;
     getReportes({ limite })
-      .then((data) => activo && setReportes(data))
+      .then((data) => {
+        if (!activo) return;
+        setReportes(data);
+        setHayMas(data.length === limite);
+      })
       .catch((err) => activo && setError(err.message))
       .finally(() => activo && setLoading(false));
     return () => {
@@ -23,7 +32,7 @@ export function useReportes(limite = 30) {
     setReportes((prev) => [payload, ...prev]);
   });
 
-  async function enviarReporte(datos) {
+  const enviarReporte = useCallback(async (datos) => {
     setEnviando(true);
     try {
       await crearReporte(datos);
@@ -35,9 +44,9 @@ export function useReportes(limite = 30) {
     } finally {
       setEnviando(false);
     }
-  }
+  }, []);
 
-  async function darLike(reporteId) {
+  const darLike = useCallback(async (reporteId) => {
     const resultado = await darLikeApi(reporteId);
     setReportes((prev) =>
       prev.map((reporte) =>
@@ -46,16 +55,41 @@ export function useReportes(limite = 30) {
           : reporte
       )
     );
-  }
+  }, []);
 
-  async function actualizarEstado(reporteId, estado) {
+  const actualizarEstado = useCallback(async (reporteId, estado) => {
     const resultado = await actualizarEstadoReporte(reporteId, estado);
     setReportes((prev) =>
-      prev.map((reporte) =>
-        reporte.id === reporteId ? { ...reporte, estado: resultado.estado } : reporte
-      )
+      prev.map((reporte) => (reporte.id === reporteId ? { ...reporte, estado: resultado.estado } : reporte))
     );
-  }
+  }, []);
 
-  return { reportes, loading, error, enviando, enviarReporte, darLike, actualizarEstado };
+  const cargarMas = useCallback(async () => {
+    if (cargandoMas || !hayMas || reportes.length === 0) return;
+    setCargandoMas(true);
+    try {
+      const ultimo = reportes[reportes.length - 1];
+      const pagina = await getReportes({ limite, antes: ultimo.creado_en });
+      setReportes((prev) => [...prev, ...pagina]);
+      setHayMas(pagina.length === limite);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setCargandoMas(false);
+    }
+  }, [cargandoMas, hayMas, reportes, limite]);
+
+  return {
+    reportes,
+    loading,
+    error,
+    enviando,
+    enviarReporte,
+    darLike,
+    actualizarEstado,
+    cargarMas,
+    cargandoMas,
+    hayMas,
+  };
 }
