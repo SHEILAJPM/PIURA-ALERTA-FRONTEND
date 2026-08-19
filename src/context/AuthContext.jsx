@@ -1,8 +1,17 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { registrarUsuario, iniciarSesion } from "../lib/api";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "piura-alerta-auth";
+const EVENTO_SESION_EXPIRADA = "piura-alerta:sesion-expirada";
+
+// lib/api.js vive fuera de React (lo usan hooks y llamadas sueltas), así que
+// no puede leer/actualizar este contexto directo. Dispara un evento del DOM
+// cuando un 401 llega con token adjunto (sesión que se creía válida y ya no
+// lo es); el AuthProvider más abajo lo escucha para cerrar sesión y avisar.
+export function dispararSesionExpirada() {
+  window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+}
 
 function leerSesionGuardada() {
   try {
@@ -17,6 +26,7 @@ export function AuthProvider({ children }) {
   const [sesion, setSesion] = useState(leerSesionGuardada);
   // null = cerrado; "login" | "registro" = modal abierto en ese modo.
   const [modal, setModal] = useState(null);
+  const [sesionExpirada, setSesionExpirada] = useState(false);
 
   useEffect(() => {
     if (sesion) {
@@ -25,6 +35,16 @@ export function AuthProvider({ children }) {
       localStorage.removeItem(STORAGE_KEY);
     }
   }, [sesion]);
+
+  useEffect(() => {
+    function manejarSesionExpirada() {
+      setSesion(null);
+      setSesionExpirada(true);
+      setModal("login");
+    }
+    window.addEventListener(EVENTO_SESION_EXPIRADA, manejarSesionExpirada);
+    return () => window.removeEventListener(EVENTO_SESION_EXPIRADA, manejarSesionExpirada);
+  }, []);
 
   async function login(correo, password) {
     const { token, usuario } = await iniciarSesion({ correo, password });
@@ -53,7 +73,11 @@ export function AuthProvider({ children }) {
         logout,
         modal,
         abrirModal: (modo = "login") => setModal(modo),
-        cerrarModal: () => setModal(null),
+        cerrarModal: () => {
+          setModal(null);
+          setSesionExpirada(false);
+        },
+        sesionExpirada,
       }}
     >
       {children}

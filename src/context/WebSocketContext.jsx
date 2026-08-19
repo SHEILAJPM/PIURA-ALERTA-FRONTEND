@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useContext, useEffect, useRef, useState } from "react";
 
 const WebSocketContext = createContext(null);
-const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:8080";
+const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:4000";
 const RECONEXION_MAX_MS = 15000;
 
 export function WebSocketProvider({ children }) {
@@ -57,11 +57,7 @@ export function WebSocketProvider({ children }) {
     return () => listenersRef.current.get(tipo)?.delete(handler);
   }
 
-  return (
-    <WebSocketContext.Provider value={{ status, subscribe }}>
-      {children}
-    </WebSocketContext.Provider>
-  );
+  return <WebSocketContext.Provider value={{ status, subscribe }}>{children}</WebSocketContext.Provider>;
 }
 
 export function useWebSocketStatus() {

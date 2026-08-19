@@ -1,4 +1,4 @@
-import { obtenerTokenGuardado } from "../context/AuthContext";
+import { obtenerTokenGuardado, dispararSesionExpirada } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
@@ -11,6 +11,14 @@ async function apiFetch(path, options) {
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+    // Un 401 con token adjunto es una sesión que se creía válida y ya no lo
+    // es (expiró, o cambió de rol y el token viejo quedó corto de permisos
+    // en una ruta que sí exige sesión) — no un intento de login fallido, ese
+    // nunca manda token. Cerrar sesión acá evita que seguir intentando otras
+    // acciones muestre el mismo error uno por uno.
+    if (res.status === 401 && token) {
+      dispararSesionExpirada();
+    }
     throw new Error(body.error ?? `Error ${res.status} al consultar ${path}`);
   }
   if (res.status === 204) return null;
@@ -52,8 +60,10 @@ export function getZonasRiesgo() {
   return apiFetch("/api/zonas-riesgo");
 }
 
-export function getReportes({ limite = 30, conFoto = false } = {}) {
-  return apiFetch(`/api/reportes-ciudadanos?limite=${limite}&conFoto=${conFoto}`);
+export function getReportes({ limite = 30, conFoto = false, antes } = {}) {
+  const params = new URLSearchParams({ limite: String(limite), conFoto: String(conFoto) });
+  if (antes) params.set("antes", antes);
+  return apiFetch(`/api/reportes-ciudadanos?${params}`);
 }
 
 export function crearReporte({ autor_nombre, descripcion, foto_url, lon, lat }) {
