@@ -51,7 +51,7 @@ describe("ReportCard", () => {
     renderCard(reporteBase, onLike);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button"));
+      fireEvent.click(screen.getByRole("button", { name: "Dar me gusta" }));
     });
     expect(onLike).toHaveBeenCalledWith("r1");
   });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { subirFoto } from "../lib/cloudinary";
 import { useAuth } from "../context/AuthContext";
+import Avatar from "./Avatar";
 import Icon from "./Icon";
 
 const inputStyle = {
@@ -85,9 +86,12 @@ function ReportForm({ onEnviar, enviando }) {
       <h3 className="font-bold">Reportar una situación</h3>
 
       {usuario ? (
-        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          Publicando como <strong>{usuario.nombre}</strong>
-        </p>
+        <div className="flex items-center gap-2">
+          <Avatar nombre={usuario.nombre} size={28} />
+          <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+            Publicando como <strong style={{ color: "var(--color-text)" }}>{usuario.nombre}</strong>
+          </p>
+        </div>
       ) : (
         <input
           type="text"
