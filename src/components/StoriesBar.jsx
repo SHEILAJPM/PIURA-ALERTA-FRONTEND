@@ -1,4 +1,3 @@
-import React from "react";
 import { useResource } from "../hooks/useResource";
 import { getReportes } from "../lib/api";
 import Skeleton from "./Skeleton";
@@ -7,10 +6,7 @@ import Skeleton from "./Skeleton";
 // simplemente los últimos reportes que tienen foto, mostrados como círculos.
 // Mismo dato del feed, presentación distinta.
 function StoriesBar() {
-  const { data: historias, loading } = useResource(
-    () => getReportes({ conFoto: true, limite: 15 }),
-    []
-  );
+  const { data: historias, loading } = useResource(() => getReportes({ conFoto: true, limite: 15 }), []);
 
   if (loading) {
     return (
@@ -42,14 +38,12 @@ function StoriesBar() {
             <img
               src={historia.foto_url}
               alt={historia.descripcion}
+              loading="lazy"
               className="w-full h-full rounded-full object-cover border-2"
               style={{ borderColor: "var(--color-surface)" }}
             />
           </span>
-          <span
-            className="text-xs truncate w-full text-center"
-            style={{ color: "var(--color-text-muted)" }}
-          >
+          <span className="text-xs truncate w-full text-center" style={{ color: "var(--color-text-muted)" }}>
             {historia.usuario_nombre}
           </span>
         </a>

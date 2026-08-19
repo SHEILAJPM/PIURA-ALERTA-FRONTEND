@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { subirFoto } from "../lib/cloudinary";
 import { useAuth } from "../context/AuthContext";
+import Icon from "./Icon";
 
 const inputStyle = {
   borderColor: "var(--color-border)",
@@ -122,8 +123,11 @@ function ReportForm({ onEnviar, enviando }) {
         </div>
       )}
 
-      <label className="text-sm font-semibold cursor-pointer flex items-center gap-1.5" style={{ color: "var(--color-primary)" }}>
-        <i className="bi bi-camera" aria-hidden="true" /> {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
+      <label
+        className="text-sm font-semibold cursor-pointer flex items-center gap-1.5"
+        style={{ color: "var(--color-primary)" }}
+      >
+        <Icon name="bi-camera" aria-hidden="true" /> {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
         <input type="file" accept="image/*" onChange={manejarSeleccionFoto} className="hidden" />
       </label>
 
@@ -133,7 +137,7 @@ function ReportForm({ onEnviar, enviando }) {
         className="flex items-center gap-1.5 text-sm font-semibold"
         style={{ color: "var(--color-primary)" }}
       >
-        <i className={`bi ${ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"}`} aria-hidden="true" />
+        <Icon name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"} aria-hidden="true" />
         {ubicacion ? "Ubicación adjunta" : "Compartir mi ubicación"}
       </button>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
 import { useWebSocketStatus } from "../context/WebSocketContext";
@@ -49,7 +49,15 @@ const estiloAdminBadge = { backgroundColor: "color-mix(in srgb, var(--color-dora
 
 function IconoMenu({ abierto }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+    >
       {abierto ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
     </svg>
   );
@@ -77,20 +85,13 @@ function Header() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-
           <div className="flex items-center gap-3 min-w-0">
             <div className="w-11 h-11 bg-white rounded-full flex items-center justify-center overflow-hidden shrink-0">
-              <img
-                src="/images/escudo-piura.png"
-                alt="Escudo de Piura"
-                className="w-9 h-9 object-contain"
-              />
+              <img src="/images/escudo-piura.png" alt="Escudo de Piura" className="w-9 h-9 object-contain" />
             </div>
 
             <div className="min-w-0">
-              <h1 className="text-lg font-bold text-white leading-tight truncate">
-                Río Piura Alerta
-              </h1>
+              <h1 className="text-lg font-bold text-white leading-tight truncate">Río Piura Alerta</h1>
               <div className="flex items-center gap-1.5 text-xs text-white/70">
                 <span className={`w-1.5 h-1.5 rounded-full ${conexion.color}`} />
                 {conexion.texto}

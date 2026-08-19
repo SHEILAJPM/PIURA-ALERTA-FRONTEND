@@ -1,9 +1,9 @@
-import React from "react";
 import StatusBadge from "./StatusBadge";
 import Skeleton from "./Skeleton";
 import ErrorBanner from "./ErrorBanner";
 import { useUltimaLectura } from "../hooks/useUltimaLectura";
 import { useEstadoSensores } from "../hooks/useEstadoSensores";
+import Icon from "./Icon";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
 
@@ -52,10 +52,10 @@ function RiverStatus() {
           className="flex items-start gap-2 rounded-xl px-4 py-3 mb-5 text-sm font-medium"
           style={{ backgroundColor: "var(--color-alerta-soft)", color: "var(--color-alerta)" }}
         >
-          <i className="bi bi-tools" aria-hidden="true" />
+          <Icon name="bi-tools" aria-hidden="true" />
           <span>
-            Sensor sin señal desde las {formatearHora(estadoSensor.ultima_lectura?.medido_en)} —
-            estos datos pueden no reflejar el nivel actual del río.
+            Sensor sin señal desde las {formatearHora(estadoSensor.ultima_lectura?.medido_en)} — estos datos
+            pueden no reflejar el nivel actual del río.
           </span>
         </div>
       )}

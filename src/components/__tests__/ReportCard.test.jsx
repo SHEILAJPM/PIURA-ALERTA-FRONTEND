@@ -62,6 +62,6 @@ describe("ReportCard", () => {
       JSON.stringify({ token: "t", usuario: { id: "u1", nombre: "Sheila" } })
     );
     renderCard({ ...reporteBase, te_gusta: true });
-    expect(screen.getByRole("button").querySelector(".bi-heart-fill")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Quitar me gusta" })).toBeInTheDocument();
   });
 });

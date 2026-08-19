@@ -1,9 +1,9 @@
-import React from "react";
 import RiverStatus from "../components/RiverStatus";
 import KpiCard, { KpiCardSkeleton } from "../components/KpiCard";
 import AlertCard from "../components/AlertCard";
 import LevelChart from "../components/LevelChart";
 import Skeleton from "../components/Skeleton";
+import Icon from "../components/Icon";
 import { useUltimaLectura } from "../hooks/useUltimaLectura";
 import { useSensores } from "../hooks/useSensores";
 import { useHistorico } from "../hooks/useHistorico";
@@ -30,11 +30,7 @@ function calcularTendencia(prediccion) {
 function Home() {
   const { lectura, loading: cargandoLectura } = useUltimaLectura(SENSOR_POR_DEFECTO);
   const { data: sensores, loading: cargandoSensores } = useSensores();
-  const {
-    puntos,
-    loading: cargandoHistorico,
-    error: errorHistorico,
-  } = useHistorico(SENSOR_POR_DEFECTO, 180);
+  const { puntos, loading: cargandoHistorico, error: errorHistorico } = useHistorico(SENSOR_POR_DEFECTO, 180);
 
   const sensorActivo = sensores?.find((s) => s.codigo === SENSOR_POR_DEFECTO) ?? sensores?.[0];
   const cargandoKpis = cargandoLectura || cargandoSensores;
@@ -50,8 +46,8 @@ function Home() {
         </p>
         <h2 className="text-3xl md:text-4xl font-bold mt-2">Monitoreo del río Piura</h2>
         <p className="mt-3 max-w-2xl" style={{ color: "var(--color-text-muted)" }}>
-          Consulta en tiempo real el estado del río, los niveles registrados por el sensor y las
-          alertas activas durante periodos de lluvia.
+          Consulta en tiempo real el estado del río, los niveles registrados por el sensor y las alertas
+          activas durante periodos de lluvia.
         </p>
       </section>
 
@@ -99,25 +95,25 @@ function Home() {
               title="Nivel del río"
               value={`${lectura?.nivel_cm ?? "—"} cm`}
               description="Registro actual"
-              icon={<i className="bi bi-water" aria-hidden="true" />}
+              icon={<Icon name="bi-water" aria-hidden="true" />}
             />
             <KpiCard
               title="Tendencia"
               value={calcularTendencia(lectura?.prediccion)}
               description="Últimas mediciones"
-              icon={<i className="bi bi-graph-up-arrow" aria-hidden="true" />}
+              icon={<Icon name="bi-graph-up-arrow" aria-hidden="true" />}
             />
             <KpiCard
               title="Puntos activos"
               value={sensores?.filter((s) => s.activo).length ?? "—"}
               description="Sensores monitoreados"
-              icon={<i className="bi bi-geo-alt-fill" aria-hidden="true" />}
+              icon={<Icon name="bi-geo-alt-fill" aria-hidden="true" />}
             />
             <KpiCard
               title="Actualización"
               value={formatearHora(lectura?.medido_en)}
               description="Último registro"
-              icon={<i className="bi bi-clock-history" aria-hidden="true" />}
+              icon={<Icon name="bi-clock-history" aria-hidden="true" />}
             />
           </>
         )}
@@ -142,13 +138,12 @@ function Home() {
         {lectura?.prediccion?.disponible ? (
           <p className="mt-2 text-sm" style={{ color: "var(--color-text)" }}>
             Si la tendencia actual continúa, el sensor alcanzaría el umbral de{" "}
-            <strong>alerta roja en ~{lectura.prediccion.minutosParaAlerta} min</strong>. Ten en
-            cuenta estas recomendaciones:
+            <strong>alerta roja en ~{lectura.prediccion.minutosParaAlerta} min</strong>. Ten en cuenta estas
+            recomendaciones:
           </p>
         ) : (
           <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
-            Por ahora no hay una proyección de crecida activa. Aun así, ten en cuenta estas
-            recomendaciones:
+            Por ahora no hay una proyección de crecida activa. Aun así, ten en cuenta estas recomendaciones:
           </p>
         )}
 
@@ -163,7 +158,7 @@ function Home() {
                 className="w-9 h-9 rounded-full flex items-center justify-center text-lg shrink-0"
                 style={{ backgroundColor: "var(--color-dorado-soft)", color: "var(--color-dorado)" }}
               >
-                <i className={`bi ${ICONOS_RECOMENDACION[i % ICONOS_RECOMENDACION.length]}`} aria-hidden="true" />
+                <Icon name={ICONOS_RECOMENDACION[i % ICONOS_RECOMENDACION.length]} aria-hidden="true" />
               </span>
               <span className="text-sm pt-1.5" style={{ color: "var(--color-text)" }}>
                 {recomendacion}

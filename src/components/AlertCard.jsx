@@ -1,4 +1,4 @@
-import React from "react";
+import Icon from "./Icon";
 
 const CONTENIDO = {
   normal: {
@@ -20,7 +20,8 @@ const CONTENIDO = {
     color: "var(--color-alerta)",
     bg: "var(--color-alerta-soft)",
     titulo: "Alerta roja: riesgo de desborde",
-    detalle: "Dirígete a una zona segura o al albergue más cercano. Sigue las indicaciones de las autoridades.",
+    detalle:
+      "Dirígete a una zona segura o al albergue más cercano. Sigue las indicaciones de las autoridades.",
   },
 };
 
@@ -38,7 +39,7 @@ function AlertCard({ estado = "normal" }) {
           className="w-10 h-10 rounded-full flex items-center justify-center text-xl shrink-0"
           style={{ backgroundColor: actual.bg, color: actual.color }}
         >
-          <i className={`bi ${actual.icono}`} aria-hidden="true" />
+          <Icon name={actual.icono} aria-hidden="true" />
         </div>
 
         <div>

@@ -1,5 +1,5 @@
-import React from "react";
 import { useTheme } from "../context/ThemeContext";
+import Icon from "./Icon";
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -14,7 +14,7 @@ function ThemeToggle() {
       className="w-10 h-10 rounded-full flex items-center justify-center text-lg
                  bg-white/10 hover:bg-white/20 text-white transition"
     >
-      <i className={`bi ${isDark ? "bi-sun-fill" : "bi-moon-stars-fill"}`} aria-hidden="true" />
+      <Icon name={isDark ? "bi-sun-fill" : "bi-moon-stars-fill"} aria-hidden="true" />
     </button>
   );
 }

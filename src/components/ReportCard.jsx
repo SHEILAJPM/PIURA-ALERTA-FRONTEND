@@ -1,8 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Icon from "./Icon";
 
 const ESTADO_LABEL = {
-  pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },
+  pendiente: {
+    text: "Pendiente de revisión",
+    color: "var(--color-prealerta)",
+    bg: "var(--color-prealerta-soft)",
+  },
   verificado: { text: "Verificado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
   descartado: { text: "Descartado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
 };
@@ -64,6 +69,7 @@ function ReportCard({ reporte, onLike }) {
         <img
           src={reporte.foto_url}
           alt="Foto del reporte"
+          loading="lazy"
           className="mt-3 rounded-xl max-h-64 w-full object-cover"
         />
       )}
@@ -77,7 +83,7 @@ function ReportCard({ reporte, onLike }) {
           className="flex items-center gap-1.5 disabled:opacity-60"
           style={{ color: reporte.te_gusta ? "var(--color-alerta)" : "var(--color-text-muted)" }}
         >
-          <i className={`bi ${reporte.te_gusta ? "bi-heart-fill" : "bi-heart"}`} aria-hidden="true" />{" "}
+          <Icon name={reporte.te_gusta ? "bi-heart-fill" : "bi-heart"} aria-hidden="true" />{" "}
           {reporte.likes_count}
         </button>
       </div>

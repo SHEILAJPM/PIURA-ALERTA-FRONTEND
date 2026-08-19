@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
+import Icon from "./Icon";
 import { useAuth } from "../context/AuthContext";
 import { ROLES_ADMINISTRADOR, ROLES_OPERADOR_TECNICO, ROLES_DEFENSA_CIVIL } from "../constants/roles";
 
@@ -63,7 +64,7 @@ function GrupoAccordion({ grupo, abierto, onToggle }) {
         <nav className="flex flex-col gap-0.5 mt-0.5 mb-2">
           {grupo.items.map((item) => (
             <NavLink key={item.to} to={item.to} className={itemClass}>
-              <i className={`bi ${item.icon} w-4 text-center -ml-1`} aria-hidden="true" />
+              <Icon name={item.icon} className="w-4 text-center -ml-1" aria-hidden="true" />
               {item.label}
             </NavLink>
           ))}
