@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from "react";
 import { useReportes } from "../../hooks/useReportes";
+import { useAuth } from "../../context/AuthContext";
 import Skeleton from "../../components/Skeleton";
 import ErrorBanner from "../../components/ErrorBanner";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -12,7 +13,7 @@ const ESTADO_LABEL = {
     bg: "var(--color-prealerta-soft)",
   },
   verificado: { text: "Verificado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
-  descartado: { text: "Descartado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
+  descartado: { text: "Archivado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
 };
 
 function formatearFecha(iso) {
@@ -46,7 +47,7 @@ function DonutEstados({ pendientes, verificados, descartados }) {
   const segmentos = [
     { label: "Pendientes", valor: pendientes, color: "var(--color-prealerta)" },
     { label: "Verificados", valor: verificados, color: "var(--color-normal)" },
-    { label: "Descartados", valor: descartados, color: "var(--color-text-muted)" },
+    { label: "Archivados", valor: descartados, color: "var(--color-text-muted)" },
   ];
 
   if (total === 0) {
@@ -155,7 +156,7 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
           className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50"
           style={{ backgroundColor: "var(--color-surface-alt)", color: "var(--color-text)" }}
         >
-          <Icon name="bi-x-lg" aria-hidden="true" /> Descartar
+          <Icon name="bi-x-lg" aria-hidden="true" /> Archivar
         </button>
       </div>
     </article>
@@ -163,17 +164,26 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
 });
 
 function ModeracionReportes() {
+  const { usuario } = useAuth();
   const { reportes, loading, error, actualizarEstado } = useReportes(50);
   const [procesandoId, setProcesandoId] = useState(null);
+
+  // Operario/Defensa Civil moderan lo pendiente y nada más: una vez
+  // verificado o archivado deja de ser su responsabilidad. El backend ya ni
+  // siquiera les manda esos reportes (ver GET /api/reportes-ciudadanos), así
+  // que acá solo falta no mostrarles secciones que para ellos siempre van a
+  // estar vacías — el archivo completo queda para Administrador.
+  const esAdministrador = usuario?.rol === "administrador";
 
   // Los marcados como posible spam se quedan al final (no se ocultan: la IA
   // puede equivocarse), así los reportes probablemente reales aparecen primero.
   const pendientes = reportes
     .filter((r) => r.estado === "pendiente")
     .sort((a, b) => (a.posible_spam === true ? 1 : 0) - (b.posible_spam === true ? 1 : 0));
-  const revisados = reportes.filter((r) => r.estado !== "pendiente");
-  const verificados = reportes.filter((r) => r.estado === "verificado").length;
-  const descartados = reportes.filter((r) => r.estado === "descartado").length;
+  const verificadosList = reportes.filter((r) => r.estado === "verificado");
+  const archivadosList = reportes.filter((r) => r.estado === "descartado");
+  const verificados = verificadosList.length;
+  const descartados = archivadosList.length;
 
   const cambiarEstado = useCallback(
     async (id, estado) => {
@@ -198,22 +208,28 @@ function ModeracionReportes() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_1.4fr] gap-4 mb-8">
-          <StatCard valor={pendientes.length} etiqueta="Pendientes" color="var(--color-prealerta)" />
-          <StatCard valor={verificados} etiqueta="Verificados" color="var(--color-normal)" />
-          <StatCard valor={descartados} etiqueta="Descartados" color="var(--color-text-muted)" />
-          <div
-            className="rounded-2xl border p-5"
-            style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
-          >
-            <p className="text-sm font-semibold mb-3">Distribución por estado</p>
-            <DonutEstados
-              pendientes={pendientes.length}
-              verificados={verificados}
-              descartados={descartados}
-            />
+        {esAdministrador ? (
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_1fr_1.4fr] gap-4 mb-8">
+            <StatCard valor={pendientes.length} etiqueta="Pendientes" color="var(--color-prealerta)" />
+            <StatCard valor={verificados} etiqueta="Verificados" color="var(--color-normal)" />
+            <StatCard valor={descartados} etiqueta="Archivados" color="var(--color-text-muted)" />
+            <div
+              className="rounded-2xl border p-5"
+              style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+            >
+              <p className="text-sm font-semibold mb-3">Distribución por estado</p>
+              <DonutEstados
+                pendientes={pendientes.length}
+                verificados={verificados}
+                descartados={descartados}
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_2fr] gap-4 mb-8">
+            <StatCard valor={pendientes.length} etiqueta="Pendientes" color="var(--color-prealerta)" />
+          </div>
+        )}
 
         {loading ? (
           <div className="space-y-4">
@@ -241,22 +257,44 @@ function ModeracionReportes() {
               </div>
             )}
 
-            <h3 className="font-bold mb-3">Ya revisados</h3>
-            {revisados.length === 0 ? (
-              <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
-                Aún no hay reportes revisados.
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {revisados.map((reporte) => (
-                  <ReporteModeracion
-                    key={reporte.id}
-                    reporte={reporte}
-                    procesando={procesandoId === reporte.id}
-                    onCambiarEstado={cambiarEstado}
-                  />
-                ))}
-              </div>
+            {esAdministrador && (
+              <>
+                <h3 className="font-bold mb-3">Verificados ({verificadosList.length})</h3>
+                {verificadosList.length === 0 ? (
+                  <p className="text-sm mb-8" style={{ color: "var(--color-text-muted)" }}>
+                    Aún no hay reportes verificados.
+                  </p>
+                ) : (
+                  <div className="space-y-4 mb-8">
+                    {verificadosList.map((reporte) => (
+                      <ReporteModeracion
+                        key={reporte.id}
+                        reporte={reporte}
+                        procesando={procesandoId === reporte.id}
+                        onCambiarEstado={cambiarEstado}
+                      />
+                    ))}
+                  </div>
+                )}
+
+                <h3 className="font-bold mb-3">Archivados ({archivadosList.length})</h3>
+                {archivadosList.length === 0 ? (
+                  <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+                    Todavía no se archivó ningún reporte.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {archivadosList.map((reporte) => (
+                      <ReporteModeracion
+                        key={reporte.id}
+                        reporte={reporte}
+                        procesando={procesandoId === reporte.id}
+                        onCambiarEstado={cambiarEstado}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
