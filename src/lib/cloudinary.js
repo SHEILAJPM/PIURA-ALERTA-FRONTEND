@@ -7,9 +7,7 @@ const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 // preset, modo "Unsigned") y ahí se puede limitar tamaño/formato permitido.
 export async function subirFoto(archivo) {
   if (!CLOUD_NAME || !UPLOAD_PRESET) {
-    throw new Error(
-      "Falta configurar VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en .env"
-    );
+    throw new Error("Falta configurar VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en .env");
   }
 
   const formData = new FormData();
