@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useTickets } from "../../hooks/useTickets";
 import { useSensores } from "../../hooks/useSensores";
 import { crearTicket, actualizarEstadoTicket } from "../../lib/api";
@@ -22,7 +22,12 @@ const PRIORIDAD_LABEL = {
 };
 
 function formatearFecha(iso) {
-  return new Date(iso).toLocaleDateString("es-PE", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+  return new Date(iso).toLocaleDateString("es-PE", {
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function NuevoTicket({ sensores, onCrear }) {
@@ -39,7 +44,12 @@ function NuevoTicket({ sensores, onCrear }) {
     setEnviando(true);
     setError(null);
     try {
-      await onCrear({ titulo, descripcion: descripcion || undefined, prioridad, sensor_id: sensorId || undefined });
+      await onCrear({
+        titulo,
+        descripcion: descripcion || undefined,
+        prioridad,
+        sensor_id: sensorId || undefined,
+      });
       setTitulo("");
       setDescripcion("");
       setPrioridad("media");
@@ -74,27 +84,42 @@ function NuevoTicket({ sensores, onCrear }) {
       <input
         type="text"
         placeholder="Título (ej. Sensor sin señal en Puente Bolognesi)"
+        aria-label="Título del ticket"
         value={titulo}
         onChange={(e) => setTitulo(e.target.value)}
         required
         maxLength={150}
         className="w-full rounded-lg border px-3 py-2 text-sm"
-        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+        style={{
+          borderColor: "var(--color-border)",
+          backgroundColor: "var(--color-bg)",
+          color: "var(--color-text)",
+        }}
       />
       <textarea
         placeholder="Descripción (opcional)"
+        aria-label="Descripción del ticket"
         value={descripcion}
         onChange={(e) => setDescripcion(e.target.value)}
         rows={2}
         className="w-full rounded-lg border px-3 py-2 text-sm resize-none"
-        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+        style={{
+          borderColor: "var(--color-border)",
+          backgroundColor: "var(--color-bg)",
+          color: "var(--color-text)",
+        }}
       />
       <div className="flex flex-wrap gap-3">
         <select
           value={sensorId}
           onChange={(e) => setSensorId(e.target.value)}
+          aria-label="Nodo asociado"
           className="rounded-lg border px-3 py-2 text-sm"
-          style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+          style={{
+            borderColor: "var(--color-border)",
+            backgroundColor: "var(--color-bg)",
+            color: "var(--color-text)",
+          }}
         >
           <option value="">Sin nodo asociado</option>
           {sensores?.map((s) => (
@@ -106,8 +131,13 @@ function NuevoTicket({ sensores, onCrear }) {
         <select
           value={prioridad}
           onChange={(e) => setPrioridad(e.target.value)}
+          aria-label="Prioridad"
           className="rounded-lg border px-3 py-2 text-sm"
-          style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+          style={{
+            borderColor: "var(--color-border)",
+            backgroundColor: "var(--color-bg)",
+            color: "var(--color-text)",
+          }}
         >
           <option value="baja">Prioridad baja</option>
           <option value="media">Prioridad media</option>
@@ -141,7 +171,7 @@ function NuevoTicket({ sensores, onCrear }) {
   );
 }
 
-function TarjetaTicket({ ticket, onAvanzar }) {
+const TarjetaTicket = React.memo(function TarjetaTicket({ ticket, onAvanzar }) {
   const [procesando, setProcesando] = useState(false);
   const estado = ESTADO_LABEL[ticket.estado];
   const prioridad = PRIORIDAD_LABEL[ticket.prioridad];
@@ -207,25 +237,31 @@ function TarjetaTicket({ ticket, onAvanzar }) {
       </div>
     </article>
   );
-}
+});
 
 function Tickets() {
   const { data: tickets, loading, error, setData, recargar } = useTickets();
   const { data: sensores } = useSensores();
 
-  async function manejarCrear(datos) {
-    const nuevo = await crearTicket(datos);
-    const sensor = sensores?.find((s) => s.id === datos.sensor_id);
-    setData((prev) => [
-      { ...nuevo, sensor_codigo: sensor?.codigo ?? null, sensor_nombre: sensor?.nombre ?? null },
-      ...(prev ?? []),
-    ]);
-  }
+  const manejarCrear = useCallback(
+    async (datos) => {
+      const nuevo = await crearTicket(datos);
+      const sensor = sensores?.find((s) => s.id === datos.sensor_id);
+      setData((prev) => [
+        { ...nuevo, sensor_codigo: sensor?.codigo ?? null, sensor_nombre: sensor?.nombre ?? null },
+        ...(prev ?? []),
+      ]);
+    },
+    [sensores, setData]
+  );
 
-  async function manejarAvanzar(id, estado) {
-    const actualizado = await actualizarEstadoTicket(id, estado);
-    setData((prev) => prev.map((t) => (t.id === id ? { ...t, estado: actualizado.estado } : t)));
-  }
+  const manejarAvanzar = useCallback(
+    async (id, estado) => {
+      const actualizado = await actualizarEstadoTicket(id, estado);
+      setData((prev) => prev.map((t) => (t.id === id ? { ...t, estado: actualizado.estado } : t)));
+    },
+    [setData]
+  );
 
   return (
     <>

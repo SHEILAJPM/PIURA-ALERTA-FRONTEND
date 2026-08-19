@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useUltimaLectura } from "../../hooks/useUltimaLectura";
 import { useEstadoSensores } from "../../hooks/useEstadoSensores";
 import { difundirAlertaManual } from "../../lib/api";
@@ -6,6 +6,8 @@ import StatusBadge from "../../components/StatusBadge";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import Skeleton from "../../components/Skeleton";
 import ErrorBanner from "../../components/ErrorBanner";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import Icon from "../../components/Icon";
 
 const LIMITE_MENSAJE = 1000;
 
@@ -37,12 +39,12 @@ function DifusionManual() {
       style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
     >
       <div className="flex items-center gap-2 mb-1">
-        <i className="bi bi-megaphone" style={{ color: "var(--color-primary)" }} aria-hidden="true" />
+        <Icon name="bi-megaphone" style={{ color: "var(--color-primary)" }} aria-hidden="true" />
         <h2 className="font-bold">Difusión manual a Telegram</h2>
       </div>
       <p className="text-sm mb-4" style={{ color: "var(--color-text-muted)" }}>
-        Envía un aviso a todos los suscriptores activos, además de los avisos automáticos por cambio
-        de nivel del río.
+        Envía un aviso a todos los suscriptores activos, además de los avisos automáticos por cambio de nivel
+        del río.
       </p>
 
       <textarea
@@ -55,7 +57,11 @@ function DifusionManual() {
         rows={4}
         placeholder="Ej. Evacúen preventivamente el sector Puente Bolognesi hacia el Coliseo Gerónimo Seminario."
         className="w-full rounded-lg border px-3 py-2 text-sm resize-none"
-        style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+        style={{
+          borderColor: "var(--color-border)",
+          backgroundColor: "var(--color-bg)",
+          color: "var(--color-text)",
+        }}
       />
       <p className="text-xs mt-1 text-right" style={{ color: "var(--color-text-muted)" }}>
         {mensaje.length} / {LIMITE_MENSAJE}
@@ -68,51 +74,35 @@ function DifusionManual() {
       )}
 
       {enviadoA !== null && (
-        <p className="text-sm mt-2 font-medium flex items-center gap-1.5" style={{ color: "var(--color-normal)" }}>
-          <i className="bi bi-check-circle-fill" aria-hidden="true" /> Enviado a {enviadoA} suscriptor
+        <p
+          className="text-sm mt-2 font-medium flex items-center gap-1.5"
+          style={{ color: "var(--color-normal)" }}
+        >
+          <Icon name="bi-check-circle-fill" aria-hidden="true" /> Enviado a {enviadoA} suscriptor
           {enviadoA === 1 ? "" : "es"}.
         </p>
       )}
 
-      {confirmando ? (
-        <div
-          className="mt-4 rounded-xl p-4"
-          style={{ backgroundColor: "var(--color-alerta-soft)" }}
+      <button
+        type="button"
+        onClick={() => setConfirmando(true)}
+        disabled={mensaje.trim().length === 0}
+        className="mt-4 text-sm font-semibold px-5 py-2.5 rounded-lg text-white disabled:opacity-50"
+        style={{ backgroundColor: "var(--color-primary)" }}
+      >
+        Enviar difusión
+      </button>
+
+      {confirmando && (
+        <ConfirmDialog
+          titulo="Confirmar difusión"
+          textoConfirmar="Sí, enviar ahora"
+          enviando={enviando}
+          onConfirmar={confirmar}
+          onCancelar={() => setConfirmando(false)}
         >
-          <p className="text-sm font-semibold" style={{ color: "var(--color-alerta)" }}>
-            ¿Confirmar el envío a todos los suscriptores activos? No se puede deshacer.
-          </p>
-          <div className="flex gap-2 mt-3">
-            <button
-              type="button"
-              onClick={confirmar}
-              disabled={enviando}
-              className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-50"
-              style={{ backgroundColor: "var(--color-alerta)" }}
-            >
-              {enviando ? "Enviando..." : "Sí, enviar ahora"}
-            </button>
-            <button
-              type="button"
-              onClick={() => setConfirmando(false)}
-              disabled={enviando}
-              className="text-sm font-medium px-4 py-2"
-              style={{ color: "var(--color-text-muted)" }}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setConfirmando(true)}
-          disabled={mensaje.trim().length === 0}
-          className="mt-4 text-sm font-semibold px-5 py-2.5 rounded-lg text-white disabled:opacity-50"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          Enviar difusión
-        </button>
+          ¿Confirmar el envío a todos los suscriptores activos? No se puede deshacer.
+        </ConfirmDialog>
       )}
     </div>
   );

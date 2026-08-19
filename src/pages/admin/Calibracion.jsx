@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSensores } from "../../hooks/useSensores";
 import { actualizarCalibracionSensor } from "../../lib/api";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -54,45 +54,81 @@ function TarjetaSensor({ sensor, onGuardar }) {
 
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium" style={{ color: "var(--color-prealerta)" }}>
-            Prealerta
-          </span>
           {editando ? (
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={prealerta}
-                onChange={(e) => setPrealerta(e.target.value)}
-                className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
-                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
-              />
-              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>cm</span>
-            </div>
+            <>
+              <label
+                htmlFor={`prealerta-${sensor.id}`}
+                className="text-sm font-medium"
+                style={{ color: "var(--color-prealerta)" }}
+              >
+                Prealerta
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  id={`prealerta-${sensor.id}`}
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={prealerta}
+                  onChange={(e) => setPrealerta(e.target.value)}
+                  className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    backgroundColor: "var(--color-bg)",
+                    color: "var(--color-text)",
+                  }}
+                />
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                  cm
+                </span>
+              </div>
+            </>
           ) : (
-            <span className="font-mono-data font-semibold">{sensor.nivel_prealerta_cm} cm</span>
+            <>
+              <span className="text-sm font-medium" style={{ color: "var(--color-prealerta)" }}>
+                Prealerta
+              </span>
+              <span className="font-mono-data font-semibold">{sensor.nivel_prealerta_cm} cm</span>
+            </>
           )}
         </div>
         <div className="flex items-center justify-between gap-3">
-          <span className="text-sm font-medium" style={{ color: "var(--color-alerta)" }}>
-            Alerta roja
-          </span>
           {editando ? (
-            <div className="flex items-center gap-1">
-              <input
-                type="number"
-                min="0"
-                step="0.1"
-                value={alertaRoja}
-                onChange={(e) => setAlertaRoja(e.target.value)}
-                className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
-                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
-              />
-              <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>cm</span>
-            </div>
+            <>
+              <label
+                htmlFor={`alerta-roja-${sensor.id}`}
+                className="text-sm font-medium"
+                style={{ color: "var(--color-alerta)" }}
+              >
+                Alerta roja
+              </label>
+              <div className="flex items-center gap-1">
+                <input
+                  id={`alerta-roja-${sensor.id}`}
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={alertaRoja}
+                  onChange={(e) => setAlertaRoja(e.target.value)}
+                  className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    backgroundColor: "var(--color-bg)",
+                    color: "var(--color-text)",
+                  }}
+                />
+                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                  cm
+                </span>
+              </div>
+            </>
           ) : (
-            <span className="font-mono-data font-semibold">{sensor.nivel_alerta_roja_cm} cm</span>
+            <>
+              <span className="text-sm font-medium" style={{ color: "var(--color-alerta)" }}>
+                Alerta roja
+              </span>
+              <span className="font-mono-data font-semibold">{sensor.nivel_alerta_roja_cm} cm</span>
+            </>
           )}
         </div>
       </div>
@@ -145,7 +181,11 @@ function Calibracion() {
     setData((prev) =>
       prev.map((s) =>
         s.id === id
-          ? { ...s, nivel_prealerta_cm: actualizado.nivel_prealerta_cm, nivel_alerta_roja_cm: actualizado.nivel_alerta_roja_cm }
+          ? {
+              ...s,
+              nivel_prealerta_cm: actualizado.nivel_prealerta_cm,
+              nivel_alerta_roja_cm: actualizado.nivel_alerta_roja_cm,
+            }
           : s
       )
     );

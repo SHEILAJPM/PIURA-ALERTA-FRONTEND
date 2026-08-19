@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useModalA11y } from "../hooks/useModalA11y";
 import { ROLES_PANEL_ADMIN } from "../constants/roles";
 
 const inputStyle = {
@@ -195,9 +196,20 @@ function CampoRegistro({ onExito }) {
 }
 
 function AuthModal() {
-  const { modal, cerrarModal, abrirModal } = useAuth();
+  const { modal, cerrarModal, abrirModal, sesionExpirada } = useAuth();
   if (!modal) return null;
+  return (
+    <DialogoAuth
+      modal={modal}
+      cerrarModal={cerrarModal}
+      abrirModal={abrirModal}
+      sesionExpirada={sesionExpirada}
+    />
+  );
+}
 
+function DialogoAuth({ modal, cerrarModal, abrirModal, sesionExpirada }) {
+  const contenedorRef = useModalA11y(cerrarModal);
   const esLogin = modal === "login";
 
   return (
@@ -207,12 +219,19 @@ function AuthModal() {
       onClick={cerrarModal}
     >
       <div
-        className="w-full max-w-sm rounded-2xl border p-6"
+        ref={contenedorRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-modal-titulo"
+        tabIndex={-1}
+        className="w-full max-w-sm rounded-2xl border p-6 outline-none"
         style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-bold">{esLogin ? "Iniciar sesión" : "Crear cuenta"}</h3>
+          <h3 id="auth-modal-titulo" className="text-lg font-bold">
+            {esLogin ? "Iniciar sesión" : "Crear cuenta"}
+          </h3>
           <button
             type="button"
             onClick={cerrarModal}
@@ -223,6 +242,15 @@ function AuthModal() {
             ×
           </button>
         </div>
+
+        {sesionExpirada && esLogin && (
+          <p
+            className="text-sm mb-3 rounded-lg px-3 py-2"
+            style={{ backgroundColor: "var(--color-prealerta-soft)", color: "var(--color-prealerta)" }}
+          >
+            Tu sesión expiró. Volvé a iniciar sesión para continuar.
+          </p>
+        )}
 
         {esLogin ? <CampoLogin onExito={cerrarModal} /> : <CampoRegistro onExito={cerrarModal} />}
 

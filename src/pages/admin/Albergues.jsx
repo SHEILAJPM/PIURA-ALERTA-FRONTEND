@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAlbergues } from "../../hooks/useAlbergues";
 import { actualizarOcupacionAlbergue } from "../../lib/api";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -8,7 +8,8 @@ import ErrorBanner from "../../components/ErrorBanner";
 function nivelOcupacion(ocupacion, capacidad) {
   const pct = capacidad > 0 ? (ocupacion / capacidad) * 100 : 0;
   if (pct >= 90) return { texto: "Crítico", color: "var(--color-alerta)", bg: "var(--color-alerta-soft)" };
-  if (pct >= 60) return { texto: "Casi lleno", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" };
+  if (pct >= 60)
+    return { texto: "Casi lleno", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" };
   return { texto: "Disponible", color: "var(--color-normal)", bg: "var(--color-normal-soft)" };
 }
 
@@ -82,8 +83,13 @@ function FilaAlbergue({ albergue, onGuardar }) {
               max={albergue.capacidad}
               value={valor}
               onChange={(e) => setValor(e.target.value)}
+              aria-label={`Nueva ocupación de ${albergue.nombre}`}
               className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
-              style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+              style={{
+                borderColor: "var(--color-border)",
+                backgroundColor: "var(--color-bg)",
+                color: "var(--color-text)",
+              }}
             />
             <button
               type="button"
@@ -159,7 +165,10 @@ function Albergues() {
           >
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
+                <tr
+                  className="text-left text-xs uppercase tracking-wide"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   <th className="pl-5 pr-4 py-3 font-semibold">Albergue</th>
                   <th className="pr-4 py-3 font-semibold">Ocupación</th>
                   <th className="pr-4 py-3 font-semibold">Estado</th>

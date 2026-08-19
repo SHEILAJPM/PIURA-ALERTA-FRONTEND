@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useSensores } from "../../hooks/useSensores";
 import { crearSensor } from "../../lib/api";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import Skeleton from "../../components/Skeleton";
 import ErrorBanner from "../../components/ErrorBanner";
+import Icon from "../../components/Icon";
 
 const CAMPOS_INICIALES = {
   codigo: "",
@@ -75,7 +76,7 @@ function NuevoNodo({ onCrear }) {
         className="mb-6 flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg text-white"
         style={{ backgroundColor: "var(--color-primary)" }}
       >
-        <i className="bi bi-plus-lg" aria-hidden="true" /> Registrar nodo ESP32
+        <Icon name="bi-plus-lg" aria-hidden="true" /> Registrar nodo ESP32
       </button>
     );
   }
@@ -88,10 +89,15 @@ function NuevoNodo({ onCrear }) {
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>
+          <label
+            htmlFor="sensor-codigo"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             Código del ESP32
           </label>
           <input
+            id="sensor-codigo"
             type="text"
             placeholder="RIO-PIURA-02"
             value={campos.codigo}
@@ -103,10 +109,15 @@ function NuevoNodo({ onCrear }) {
           />
         </div>
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>
+          <label
+            htmlFor="sensor-nombre"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             Nombre / ubicación
           </label>
           <input
+            id="sensor-nombre"
             type="text"
             placeholder="Puente Bolognesi"
             value={campos.nombre}
@@ -118,10 +129,15 @@ function NuevoNodo({ onCrear }) {
           />
         </div>
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>
+          <label
+            htmlFor="sensor-lat"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             Latitud
           </label>
           <input
+            id="sensor-lat"
             type="number"
             step="any"
             placeholder="-5.1945"
@@ -133,10 +149,15 @@ function NuevoNodo({ onCrear }) {
           />
         </div>
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>
+          <label
+            htmlFor="sensor-lon"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-text-muted)" }}
+          >
             Longitud
           </label>
           <input
+            id="sensor-lon"
             type="number"
             step="any"
             placeholder="-80.6328"
@@ -148,10 +169,15 @@ function NuevoNodo({ onCrear }) {
           />
         </div>
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-prealerta)" }}>
+          <label
+            htmlFor="sensor-prealerta"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-prealerta)" }}
+          >
             Umbral prealerta (cm)
           </label>
           <input
+            id="sensor-prealerta"
             type="number"
             step="0.1"
             min="0"
@@ -164,10 +190,15 @@ function NuevoNodo({ onCrear }) {
           />
         </div>
         <div>
-          <label className="text-xs font-semibold" style={{ color: "var(--color-alerta)" }}>
+          <label
+            htmlFor="sensor-alerta-roja"
+            className="text-xs font-semibold"
+            style={{ color: "var(--color-alerta)" }}
+          >
             Umbral alerta roja (cm)
           </label>
           <input
+            id="sensor-alerta-roja"
             type="number"
             step="0.1"
             min="0"
@@ -245,7 +276,10 @@ function CatalogoNodos() {
           >
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
+                <tr
+                  className="text-left text-xs uppercase tracking-wide"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   <th className="pl-5 pr-4 py-3 font-semibold">Código</th>
                   <th className="pr-4 py-3 font-semibold">Nombre</th>
                   <th className="pr-4 py-3 font-semibold">Coordenadas GPS</th>
@@ -257,7 +291,10 @@ function CatalogoNodos() {
                   <tr key={s.id} className="border-t" style={{ borderColor: "var(--color-border)" }}>
                     <td className="pl-5 pr-4 py-3 font-mono-data">{s.codigo}</td>
                     <td className="pr-4 py-3">{s.nombre}</td>
-                    <td className="pr-4 py-3 font-mono-data text-xs" style={{ color: "var(--color-text-muted)" }}>
+                    <td
+                      className="pr-4 py-3 font-mono-data text-xs"
+                      style={{ color: "var(--color-text-muted)" }}
+                    >
                       {coordenadas(s.ubicacion)}
                     </td>
                     <td className="pr-5 py-3">
@@ -266,7 +303,10 @@ function CatalogoNodos() {
                         style={
                           s.activo
                             ? { color: "var(--color-normal)", backgroundColor: "var(--color-normal-soft)" }
-                            : { color: "var(--color-text-muted)", backgroundColor: "var(--color-surface-alt)" }
+                            : {
+                                color: "var(--color-text-muted)",
+                                backgroundColor: "var(--color-surface-alt)",
+                              }
                         }
                       >
                         {s.activo ? "Activo" : "Inactivo"}
@@ -280,9 +320,9 @@ function CatalogoNodos() {
         )}
 
         <p className="text-xs mt-4" style={{ color: "var(--color-text-muted)" }}>
-          Un nodo recién registrado empieza a aparecer en Telemetría en cuanto el ESP32 envíe su
-          primera lectura con este mismo código. Desactivar un nodo todavía requiere acceso directo
-          a la base de datos.
+          Un nodo recién registrado empieza a aparecer en Telemetría en cuanto el ESP32 envíe su primera
+          lectura con este mismo código. Desactivar un nodo todavía requiere acceso directo a la base de
+          datos.
         </p>
       </div>
     </>

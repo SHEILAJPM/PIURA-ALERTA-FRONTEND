@@ -6,9 +6,7 @@ import { AuthProvider, useAuth } from "../../context/AuthContext";
 
 function BotonAbrir({ modo = "login" }) {
   const { abrirModal } = useAuth();
-  return (
-    <button onClick={() => abrirModal(modo)}>abrir-{modo}</button>
-  );
+  return <button onClick={() => abrirModal(modo)}>abrir-{modo}</button>;
 }
 
 function renderModal(modo) {
