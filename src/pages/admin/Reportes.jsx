@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useReportes } from "../../hooks/useReportes";
 import Skeleton from "../../components/Skeleton";
 import ErrorBanner from "../../components/ErrorBanner";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
+import Icon from "../../components/Icon";
 
 const ESTADO_LABEL = {
-  pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },
+  pendiente: {
+    text: "Pendiente de revisión",
+    color: "var(--color-prealerta)",
+    bg: "var(--color-prealerta-soft)",
+  },
   verificado: { text: "Verificado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
   descartado: { text: "Descartado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
 };
@@ -78,9 +83,7 @@ function DonutEstados({ pendientes, verificados, descartados }) {
             <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
             <span style={{ color: "var(--color-text-muted)" }}>{s.label}</span>
             <span className="font-semibold">{s.valor}</span>
-            <span style={{ color: "var(--color-text-muted)" }}>
-              ({Math.round((s.valor / total) * 100)}%)
-            </span>
+            <span style={{ color: "var(--color-text-muted)" }}>({Math.round((s.valor / total) * 100)}%)</span>
           </li>
         ))}
       </ul>
@@ -88,7 +91,7 @@ function DonutEstados({ pendientes, verificados, descartados }) {
   );
 }
 
-function ReporteModeracion({ reporte, procesando, onVerificar, onDescartar }) {
+const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, procesando, onCambiarEstado }) {
   const estado = ESTADO_LABEL[reporte.estado] ?? ESTADO_LABEL.pendiente;
 
   return (
@@ -117,7 +120,7 @@ function ReporteModeracion({ reporte, procesando, onVerificar, onDescartar }) {
           style={{ backgroundColor: "var(--color-surface-alt)", color: "var(--color-text-muted)" }}
           title={reporte.motivo_ia ?? undefined}
         >
-          <i className="bi bi-robot" aria-hidden="true" /> Posible spam
+          <Icon name="bi-robot" aria-hidden="true" /> Posible spam
           {reporte.motivo_ia ? `: ${reporte.motivo_ia}` : ""} — revisa igual, la IA puede equivocarse
         </p>
       )}
@@ -130,6 +133,7 @@ function ReporteModeracion({ reporte, procesando, onVerificar, onDescartar }) {
         <img
           src={reporte.foto_url}
           alt="Foto del reporte"
+          loading="lazy"
           className="mt-3 rounded-xl max-h-64 w-full object-cover"
         />
       )}
@@ -137,26 +141,26 @@ function ReporteModeracion({ reporte, procesando, onVerificar, onDescartar }) {
       <div className="mt-4 flex gap-2">
         <button
           type="button"
-          onClick={onVerificar}
+          onClick={() => onCambiarEstado(reporte.id, "verificado")}
           disabled={procesando || reporte.estado === "verificado"}
           className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-50"
           style={{ backgroundColor: "var(--color-normal)" }}
         >
-          <i className="bi bi-check-lg" aria-hidden="true" /> Verificar
+          <Icon name="bi-check-lg" aria-hidden="true" /> Verificar
         </button>
         <button
           type="button"
-          onClick={onDescartar}
+          onClick={() => onCambiarEstado(reporte.id, "descartado")}
           disabled={procesando || reporte.estado === "descartado"}
           className="text-sm font-semibold px-4 py-2 rounded-lg disabled:opacity-50"
           style={{ backgroundColor: "var(--color-surface-alt)", color: "var(--color-text)" }}
         >
-          <i className="bi bi-x-lg" aria-hidden="true" /> Descartar
+          <Icon name="bi-x-lg" aria-hidden="true" /> Descartar
         </button>
       </div>
     </article>
   );
-}
+});
 
 function ModeracionReportes() {
   const { reportes, loading, error, actualizarEstado } = useReportes(50);
@@ -171,14 +175,17 @@ function ModeracionReportes() {
   const verificados = reportes.filter((r) => r.estado === "verificado").length;
   const descartados = reportes.filter((r) => r.estado === "descartado").length;
 
-  async function cambiarEstado(id, estado) {
-    setProcesandoId(id);
-    try {
-      await actualizarEstado(id, estado);
-    } finally {
-      setProcesandoId(null);
-    }
-  }
+  const cambiarEstado = useCallback(
+    async (id, estado) => {
+      setProcesandoId(id);
+      try {
+        await actualizarEstado(id, estado);
+      } finally {
+        setProcesandoId(null);
+      }
+    },
+    [actualizarEstado]
+  );
 
   return (
     <>
@@ -200,7 +207,11 @@ function ModeracionReportes() {
             style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
           >
             <p className="text-sm font-semibold mb-3">Distribución por estado</p>
-            <DonutEstados pendientes={pendientes.length} verificados={verificados} descartados={descartados} />
+            <DonutEstados
+              pendientes={pendientes.length}
+              verificados={verificados}
+              descartados={descartados}
+            />
           </div>
         </div>
 
@@ -224,8 +235,7 @@ function ModeracionReportes() {
                     key={reporte.id}
                     reporte={reporte}
                     procesando={procesandoId === reporte.id}
-                    onVerificar={() => cambiarEstado(reporte.id, "verificado")}
-                    onDescartar={() => cambiarEstado(reporte.id, "descartado")}
+                    onCambiarEstado={cambiarEstado}
                   />
                 ))}
               </div>
@@ -243,8 +253,7 @@ function ModeracionReportes() {
                     key={reporte.id}
                     reporte={reporte}
                     procesando={procesandoId === reporte.id}
-                    onVerificar={() => cambiarEstado(reporte.id, "verificado")}
-                    onDescartar={() => cambiarEstado(reporte.id, "descartado")}
+                    onCambiarEstado={cambiarEstado}
                   />
                 ))}
               </div>

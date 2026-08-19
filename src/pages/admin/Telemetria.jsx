@@ -1,4 +1,3 @@
-import React from "react";
 import { useEstadoSensores } from "../../hooks/useEstadoSensores";
 import StatusBadge from "../../components/StatusBadge";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";

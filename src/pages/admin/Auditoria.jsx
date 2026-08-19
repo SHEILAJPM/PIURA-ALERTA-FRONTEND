@@ -1,4 +1,3 @@
-import React from "react";
 import { useAuditoria } from "../../hooks/useAuditoria";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import RequiereRol from "../../components/admin/RequiereRol";
@@ -45,8 +44,8 @@ function Auditoria() {
           </div>
         ) : !acciones || acciones.length === 0 ? (
           <p style={{ color: "var(--color-text-muted)" }}>
-            Todavía no hay acciones registradas. Cada cambio de rol, moderación, aforo, calibración o
-            difusión manual queda aquí desde ahora.
+            Todavía no hay acciones registradas. Cada cambio de rol, moderación, aforo, calibración o difusión
+            manual queda aquí desde ahora.
           </p>
         ) : (
           <div
@@ -54,7 +53,11 @@ function Auditoria() {
             style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
           >
             {acciones.map((a) => (
-              <div key={a.id} className="flex items-start justify-between gap-4 px-5 py-3 text-sm" style={{ borderColor: "var(--color-border)" }}>
+              <div
+                key={a.id}
+                className="flex items-start justify-between gap-4 px-5 py-3 text-sm"
+                style={{ borderColor: "var(--color-border)" }}
+              >
                 <div className="min-w-0">
                   <p>
                     <span className="font-semibold">{a.usuario_nombre}</span>{" "}
@@ -68,7 +71,10 @@ function Auditoria() {
                     </p>
                   )}
                 </div>
-                <span className="text-xs font-mono-data shrink-0" style={{ color: "var(--color-text-muted)" }}>
+                <span
+                  className="text-xs font-mono-data shrink-0"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   {formatearFecha(a.creado_en)}
                 </span>
               </div>

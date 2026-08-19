@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { useUsuarios } from "../../hooks/useUsuarios";
 import { actualizarRolUsuario } from "../../lib/api";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
@@ -19,7 +19,9 @@ function formatearFecha(iso) {
   return new Date(iso).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
 }
 
-function FilaUsuario({ usuario, onCambiarRol }) {
+// Memoizado: con muchos usuarios, cambiar el rol de uno solo no debería
+// re-renderizar (ni volver a montar el <select> de) todas las demás filas.
+const FilaUsuario = React.memo(function FilaUsuario({ usuario, onCambiarRol }) {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState(null);
 
@@ -53,7 +55,11 @@ function FilaUsuario({ usuario, onCambiarRol }) {
           onChange={manejarCambio}
           disabled={guardando}
           className="rounded-lg border px-2 py-1.5 text-sm disabled:opacity-50"
-          style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)", color: "var(--color-text)" }}
+          style={{
+            borderColor: "var(--color-border)",
+            backgroundColor: "var(--color-bg)",
+            color: "var(--color-text)",
+          }}
         >
           {ROLES.map((r) => (
             <option key={r.valor} value={r.valor}>
@@ -69,15 +75,18 @@ function FilaUsuario({ usuario, onCambiarRol }) {
       </td>
     </tr>
   );
-}
+});
 
 function Usuarios() {
   const { data: usuarios, loading, error, setData, recargar } = useUsuarios();
 
-  async function cambiarRol(id, rol) {
-    const actualizado = await actualizarRolUsuario(id, rol);
-    setData((prev) => prev.map((u) => (u.id === id ? { ...u, rol: actualizado.rol } : u)));
-  }
+  const cambiarRol = useCallback(
+    async (id, rol) => {
+      const actualizado = await actualizarRolUsuario(id, rol);
+      setData((prev) => prev.map((u) => (u.id === id ? { ...u, rol: actualizado.rol } : u)));
+    },
+    [setData]
+  );
 
   return (
     <RequiereRol roles={ROLES_ADMINISTRADOR}>
@@ -105,7 +114,10 @@ function Usuarios() {
           >
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide" style={{ color: "var(--color-text-muted)" }}>
+                <tr
+                  className="text-left text-xs uppercase tracking-wide"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   <th className="pl-5 pr-4 py-3 font-semibold">Usuario</th>
                   <th className="pr-4 py-3 font-semibold">Registrado</th>
                   <th className="pr-5 py-3 font-semibold text-right">Rol</th>
