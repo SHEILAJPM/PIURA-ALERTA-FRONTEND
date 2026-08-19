@@ -1,5 +1,3 @@
-import React from "react";
-
 function ErrorBanner({ message, onRetry }) {
   return (
     <div
@@ -12,11 +10,7 @@ function ErrorBanner({ message, onRetry }) {
     >
       <p className="text-sm font-medium">{message}</p>
       {onRetry && (
-        <button
-          type="button"
-          onClick={onRetry}
-          className="text-sm font-semibold underline shrink-0"
-        >
+        <button type="button" onClick={onRetry} className="text-sm font-semibold underline shrink-0">
           Reintentar
         </button>
       )}

@@ -1,5 +1,3 @@
-import React from "react";
-
 const ESTADOS = {
   normal: { text: "Nivel normal", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
   prealerta: { text: "Prealerta", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },

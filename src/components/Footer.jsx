@@ -1,5 +1,3 @@
-import React from "react";
-
 function Footer() {
   return (
     <footer style={{ backgroundColor: "var(--color-brand-chrome)" }} className="text-white py-6 mt-auto">

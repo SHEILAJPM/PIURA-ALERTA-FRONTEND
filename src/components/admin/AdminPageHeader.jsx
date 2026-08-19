@@ -1,5 +1,3 @@
-import React from "react";
-
 function AdminPageHeader({ titulo, subtitulo, accion }) {
   return (
     <div

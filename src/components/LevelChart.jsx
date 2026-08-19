@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { useMemo } from "react";
 
 const ANCHO = 600;
 const ALTO = 200;
@@ -38,8 +38,7 @@ function LevelChart({ puntos, umbrales }) {
     const minY = Math.min(...niveles, 0) * 0.95;
 
     const escalarX = (i) => PADDING + (i / (puntos.length - 1)) * (ANCHO - PADDING * 2);
-    const escalarY = (v) =>
-      ALTO - PADDING - ((v - minY) / (maxY - minY || 1)) * (ALTO - PADDING * 2);
+    const escalarY = (v) => ALTO - PADDING - ((v - minY) / (maxY - minY || 1)) * (ALTO - PADDING * 2);
 
     const coords = niveles.map((v, i) => [escalarX(i), escalarY(v)]);
     const pathLinea = suavizarLinea(coords);
@@ -61,8 +60,7 @@ function LevelChart({ puntos, umbrales }) {
     );
   }
 
-  const escalarYUmbral = (v) =>
-    ALTO - PADDING - ((v - minY) / (maxY - minY || 1)) * (ALTO - PADDING * 2);
+  const escalarYUmbral = (v) => ALTO - PADDING - ((v - minY) / (maxY - minY || 1)) * (ALTO - PADDING * 2);
 
   return (
     <svg viewBox={`0 0 ${ANCHO} ${ALTO}`} className="w-full h-48">
