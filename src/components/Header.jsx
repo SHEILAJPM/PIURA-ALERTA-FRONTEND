@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle";
+import NotificacionesToggle from "./NotificacionesToggle";
 import { useWebSocketStatus } from "../context/WebSocketContext";
 import { useAuth } from "../context/AuthContext";
 import { ROLES_PANEL_ADMIN } from "../constants/roles";
@@ -20,6 +21,7 @@ const LINKS_BASE = [
   { to: "/", label: "Inicio" },
   { to: "/mapa", label: "Mapa" },
   { to: "/reportes", label: "Reportes" },
+  { to: "/historial", label: "Historial" },
 ];
 
 const ESTADOS_CONEXION = {
@@ -124,7 +126,9 @@ function Header() {
 
               {usuario ? (
                 <div className="flex items-center gap-2 sm:gap-3 text-sm text-white/90">
-                  <span className="hidden sm:inline">{usuario.nombre}</span>
+                  <NavLink to="/perfil" className="hidden sm:inline hover:underline">
+                    {usuario.nombre}
+                  </NavLink>
                   <button
                     type="button"
                     onClick={logout}
@@ -143,6 +147,7 @@ function Header() {
                 </button>
               )}
 
+              <NotificacionesToggle />
               <ThemeToggle />
             </div>
           </div>
@@ -189,7 +194,9 @@ function Header() {
             <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
               {usuario ? (
                 <div className="flex items-center gap-3 text-sm text-white/90">
-                  <span>{usuario.nombre}</span>
+                  <NavLink to="/perfil" onClick={cerrarMenu} className="hover:underline">
+                    {usuario.nombre}
+                  </NavLink>
                   <button
                     type="button"
                     onClick={() => {
@@ -213,7 +220,10 @@ function Header() {
                   Iniciar sesión
                 </button>
               )}
-              <ThemeToggle />
+              <div className="flex items-center gap-2">
+                <NotificacionesToggle />
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         )}

@@ -28,6 +28,10 @@ export default defineConfig({
         // de íconos (bootstrap-icons) no queda precacheada y los íconos
         // desaparecen offline si el navegador todavía no la había pedido.
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webmanifest,woff,woff2}"],
+        // Los listeners de push/notificationclick (public/push-sw.js) se
+        // inyectan así en vez de pasar a la estrategia injectManifest, que
+        // implicaría escribir a mano el precacheo que generateSW ya resuelve solo.
+        importScripts: ["push-sw.js"],
         // Datos "en vivo" (KPIs del dashboard): red primero, con timeout
         // corto, cayendo al último dato cacheado si no hay conexión — así el
         // sensor sigue mostrando el último nivel conocido en vez de una
