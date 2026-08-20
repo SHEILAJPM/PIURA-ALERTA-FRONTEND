@@ -8,12 +8,15 @@ import AdminLayout from "./components/AdminLayout";
 import AuthModal from "./components/AuthModal";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./pages/Home";
+import MiPerfil from "./pages/MiPerfil";
+import RestablecerPassword from "./pages/RestablecerPassword";
 import { ROLES_PANEL_ADMIN } from "./constants/roles";
 
 // Mapa y Reportes cargan Leaflet (pesado) a través de RiesgoMap: lazy para
 // que ese peso no entre en el bundle inicial de Home ni del panel admin.
 const Mapa = React.lazy(() => import("./pages/Mapa"));
 const Reportes = React.lazy(() => import("./pages/Reportes"));
+const Historial = React.lazy(() => import("./pages/Historial"));
 const ModeracionReportes = React.lazy(() => import("./pages/admin/Reportes"));
 const AdminAlbergues = React.lazy(() => import("./pages/admin/Albergues"));
 const CatalogoNodos = React.lazy(() => import("./pages/admin/Sensores"));
@@ -48,6 +51,11 @@ function App() {
                   }
                 />
                 <Route path="/reportes" element={conSuspenso(<Reportes />)} />
+                <Route path="/historial" element={conSuspenso(<Historial />)} />
+                <Route path="/restablecer-password" element={<RestablecerPassword />} />
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/perfil" element={<MiPerfil />} />
+                </Route>
               </Route>
 
               <Route element={<ProtectedRoute roles={ROLES_PANEL_ADMIN} />}>

@@ -84,10 +84,18 @@ export function actualizarEstadoReporte(reporteId, estado) {
   });
 }
 
-export function registrarUsuario({ nombre, dni, telefono, direccion, correo, password }) {
+export function registrarUsuario({
+  nombre,
+  dni,
+  telefono,
+  direccion,
+  correo,
+  password,
+  recibir_alertas_sms,
+}) {
   return apiFetch("/api/auth/registro", {
     method: "POST",
-    body: JSON.stringify({ nombre, dni, telefono, direccion, correo, password }),
+    body: JSON.stringify({ nombre, dni, telefono, direccion, correo, password, recibir_alertas_sms }),
   });
 }
 
@@ -100,6 +108,39 @@ export function iniciarSesion({ correo, password }) {
 
 export function obtenerPerfil() {
   return apiFetch("/api/auth/yo");
+}
+
+export function actualizarPerfil({ nombre, telefono, direccion, recibir_alertas_sms, sensor_interes_id }) {
+  const body = { nombre, telefono, direccion, recibir_alertas_sms };
+  // sensor_interes_id es undefined ("no tocar") o null/uuid ("tocar") — solo
+  // se agrega al body cuando el llamador lo pasó, para no mandar la clave de
+  // más y que el backend la confunda con "quiero volver a todos los sensores".
+  if (sensor_interes_id !== undefined) body.sensor_interes_id = sensor_interes_id;
+  return apiFetch("/api/auth/yo", {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  });
+}
+
+export function olvidarPassword(correo) {
+  return apiFetch("/api/auth/olvide-password", {
+    method: "POST",
+    body: JSON.stringify({ correo }),
+  });
+}
+
+export function restablecerPassword({ token, passwordNueva }) {
+  return apiFetch("/api/auth/restablecer-password", {
+    method: "POST",
+    body: JSON.stringify({ token, passwordNueva }),
+  });
+}
+
+export function cambiarPassword({ passwordActual, passwordNueva }) {
+  return apiFetch("/api/auth/contrasena", {
+    method: "PATCH",
+    body: JSON.stringify({ passwordActual, passwordNueva }),
+  });
 }
 
 export function getUsuarios() {
@@ -154,4 +195,26 @@ export function difundirAlertaManual(mensaje) {
     method: "POST",
     body: JSON.stringify({ mensaje }),
   });
+}
+
+export function obtenerClavePublicaPush() {
+  return apiFetch("/api/push/clave-publica");
+}
+
+export function suscribirPush(subscription) {
+  return apiFetch("/api/push/suscribir", {
+    method: "POST",
+    body: JSON.stringify(subscription),
+  });
+}
+
+export function desuscribirPush(endpoint) {
+  return apiFetch("/api/push/desuscribir", {
+    method: "POST",
+    body: JSON.stringify({ endpoint }),
+  });
+}
+
+export function getHistorialAlertas(limite = 30) {
+  return apiFetch(`/api/alertas/historial?limite=${limite}`);
 }
