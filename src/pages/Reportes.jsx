@@ -5,13 +5,26 @@ import RiesgoMap from "../components/RiesgoMap";
 import CalculadoraSacos from "../components/CalculadoraSacos";
 import Skeleton from "../components/Skeleton";
 import ErrorBanner from "../components/ErrorBanner";
+import Icon from "../components/Icon";
 import { useReportes } from "../hooks/useReportes";
+import { useOrdenPorCercania } from "../hooks/useOrdenPorCercania";
 import { useAuth } from "../context/AuthContext";
 
 function Reportes() {
-  const { reportes, loading, error, enviando, enviarReporte, darLike, cargarMas, cargandoMas, hayMas } =
-    useReportes();
+  const {
+    reportes,
+    loading,
+    error,
+    enviando,
+    enviarReporte,
+    darLike,
+    cargarMas,
+    cargandoMas,
+    hayMas,
+    pendientes,
+  } = useReportes();
   const { usuario, abrirModal } = useAuth();
+  const cercania = useOrdenPorCercania(reportes);
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -47,6 +60,38 @@ function Reportes() {
         <div className="w-full max-w-[470px] mx-auto lg:mx-0">
           <StoriesBar />
 
+          {!loading && reportes.length > 0 && (
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <button
+                type="button"
+                onClick={cercania.activo ? cercania.desactivar : cercania.activar}
+                disabled={cercania.buscando}
+                className="inline-flex items-center gap-1.5 text-sm font-semibold rounded-full px-3 py-1.5 border disabled:opacity-60 transition"
+                style={
+                  cercania.activo
+                    ? {
+                        backgroundColor: "var(--color-primary)",
+                        color: "#fff",
+                        borderColor: "var(--color-primary)",
+                      }
+                    : { borderColor: "var(--color-border)", color: "var(--color-text)" }
+                }
+              >
+                <Icon name="bi-geo-alt-fill" aria-hidden="true" />
+                {cercania.buscando
+                  ? "Ubicándote..."
+                  : cercania.activo
+                    ? "Ordenado por cercanía"
+                    : "Ordenar por cercanía"}
+              </button>
+            </div>
+          )}
+          {cercania.error && (
+            <p className="text-sm mb-4" style={{ color: "var(--color-alerta)" }}>
+              {cercania.error}
+            </p>
+          )}
+
           {error && <ErrorBanner message={`No se pudieron cargar los reportes: ${error}`} />}
 
           {loading ? (
@@ -71,8 +116,8 @@ function Reportes() {
             </p>
           ) : (
             <div className="space-y-4">
-              {reportes.map((reporte) => (
-                <ReportCard key={reporte.id} reporte={reporte} onLike={darLike} />
+              {cercania.reportesOrdenados.map(({ reporte, distanciaKm }) => (
+                <ReportCard key={reporte.id} reporte={reporte} onLike={darLike} distanciaKm={distanciaKm} />
               ))}
               {hayMas && (
                 <button
@@ -91,6 +136,17 @@ function Reportes() {
 
         {/* Rail lateral: publicar + herramientas — se queda fijo al hacer scroll, como los widgets de Instagram */}
         <aside className="space-y-4 lg:sticky lg:top-24">
+          {pendientes > 0 && (
+            <p
+              className="text-sm rounded-xl px-3 py-2 flex items-center gap-2"
+              style={{ backgroundColor: "var(--color-prealerta-soft)", color: "var(--color-prealerta)" }}
+            >
+              <Icon name="bi-exclamation-triangle-fill" aria-hidden="true" />
+              {pendientes === 1
+                ? "1 reporte pendiente por enviar (sin conexión)."
+                : `${pendientes} reportes pendientes por enviar (sin conexión).`}
+            </p>
+          )}
           <ReportForm onEnviar={enviarReporte} enviando={enviando} />
           <RiesgoMap altura="280px" mostrarLeyenda={false} />
           <CalculadoraSacos />

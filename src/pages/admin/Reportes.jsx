@@ -5,6 +5,7 @@ import Skeleton from "../../components/Skeleton";
 import ErrorBanner from "../../components/ErrorBanner";
 import AdminPageHeader from "../../components/admin/AdminPageHeader";
 import Icon from "../../components/Icon";
+import { exportarReportesCSV, exportarReportesPDF } from "../../lib/exportarReportes";
 
 const ESTADO_LABEL = {
   pendiente: {
@@ -205,6 +206,27 @@ function ModeracionReportes() {
         {error && (
           <div className="mb-6">
             <ErrorBanner message={`No se pudieron cargar los reportes: ${error}`} />
+          </div>
+        )}
+
+        {!loading && reportes.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-6">
+            <button
+              type="button"
+              onClick={() => exportarReportesCSV(reportes)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg border px-3 py-2"
+              style={{ borderColor: "var(--color-border)", color: "var(--color-text)" }}
+            >
+              <Icon name="bi-download" aria-hidden="true" /> Exportar CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => exportarReportesPDF(reportes)}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold rounded-lg border px-3 py-2"
+              style={{ borderColor: "var(--color-border)", color: "var(--color-text)" }}
+            >
+              <Icon name="bi-download" aria-hidden="true" /> Exportar PDF
+            </button>
           </div>
         )}
 

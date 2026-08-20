@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
+import { formatearDistancia } from "../lib/geo";
 
 const ESTADO_LABEL = {
   pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)" },
@@ -35,7 +36,7 @@ async function compartir(reporte) {
   await navigator.clipboard?.writeText(`${texto} — ${window.location.href}`);
 }
 
-function ReportCard({ reporte, onLike }) {
+function ReportCard({ reporte, onLike, distanciaKm }) {
   const { usuario, abrirModal } = useAuth();
   const [enviandoLike, setEnviandoLike] = useState(false);
   const aviso = ESTADO_LABEL[reporte.estado];
@@ -67,6 +68,7 @@ function ReportCard({ reporte, onLike }) {
             <span className="font-normal" style={{ color: "var(--color-text-muted)" }}>
               {" "}
               · {formatearRelativo(reporte.creado_en)}
+              {distanciaKm != null && <> · {formatearDistancia(distanciaKm)}</>}
             </span>
           </p>
           {aviso && (
