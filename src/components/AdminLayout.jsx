@@ -130,10 +130,10 @@ function AdminLayout() {
 
         <div className="mt-4 pt-4 border-t border-white/10">
           <div className="flex items-center justify-between px-2">
-            <div className="min-w-0">
+            <NavLink to="/perfil" className="min-w-0 hover:opacity-80 transition">
               <p className="text-sm font-semibold text-white truncate">{usuario?.nombre}</p>
               <p className="text-xs text-white/50 truncate">{usuario?.rol}</p>
-            </div>
+            </NavLink>
             <ThemeToggle />
           </div>
           <button

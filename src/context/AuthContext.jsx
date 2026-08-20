@@ -63,6 +63,13 @@ export function AuthProvider({ children }) {
     setSesion(null);
   }
 
+  // Tras editar el perfil (nombre/teléfono/dirección) hay que refrescar la
+  // copia en memoria/localStorage, si no el navbar y otras vistas siguen
+  // mostrando el nombre viejo hasta el próximo login.
+  function actualizarUsuario(usuarioActualizado) {
+    setSesion((actual) => (actual ? { ...actual, usuario: usuarioActualizado } : actual));
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -71,6 +78,7 @@ export function AuthProvider({ children }) {
         login,
         registro,
         logout,
+        actualizarUsuario,
         modal,
         abrirModal: (modo = "login") => setModal(modo),
         cerrarModal: () => {
