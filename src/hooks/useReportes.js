@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { getReportes, crearReporte, darLike as darLikeApi, actualizarEstadoReporte } from "../lib/api";
 import { useWebSocketEvent } from "../context/WebSocketContext";
+import { encolarReporte, contarPendientes, reintentarColaReportes } from "../lib/colaOffline";
 
 export function useReportes(limite = 30) {
   const [reportes, setReportes] = useState([]);
@@ -12,6 +13,7 @@ export function useReportes(limite = 30) {
   const [hayMas, setHayMas] = useState(true);
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
+  const [pendientes, setPendientes] = useState(() => contarPendientes());
 
   useEffect(() => {
     let activo = true;
@@ -32,13 +34,34 @@ export function useReportes(limite = 30) {
     setReportes((prev) => [payload, ...prev]);
   });
 
+  // Reintenta lo que quedó pendiente de una sesión sin conexión: al montar
+  // (por si se recargó la página ya con internet) y cada vez que el
+  // navegador avisa que volvió a conectarse.
+  useEffect(() => {
+    function reintentar() {
+      reintentarColaReportes(crearReporte).then(() => setPendientes(contarPendientes()));
+    }
+    reintentar();
+    window.addEventListener("online", reintentar);
+    return () => window.removeEventListener("online", reintentar);
+  }, []);
+
   const enviarReporte = useCallback(async (datos) => {
     setEnviando(true);
     try {
       await crearReporte(datos);
       // el nuevo reporte llega por WebSocket (reporte_ciudadano) y se antepone solo
       setError(null);
+      return { encolado: false };
     } catch (err) {
+      // TypeError = el fetch ni siquiera consiguió respuesta (sin conexión),
+      // a diferencia de un 400/500 real del servidor, que sí llega como
+      // Error normal con mensaje — ver apiFetch en lib/api.js.
+      if (err instanceof TypeError) {
+        encolarReporte(datos);
+        setPendientes(contarPendientes());
+        return { encolado: true };
+      }
       setError(err.message);
       throw err;
     } finally {
@@ -91,5 +114,6 @@ export function useReportes(limite = 30) {
     cargarMas,
     cargandoMas,
     hayMas,
+    pendientes,
   };
 }

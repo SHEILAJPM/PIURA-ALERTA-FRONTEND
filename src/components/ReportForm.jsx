@@ -18,6 +18,7 @@ function ReportForm({ onEnviar, enviando }) {
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
   const [errorLocal, setErrorLocal] = useState(null);
+  const [avisoEncolado, setAvisoEncolado] = useState(false);
 
   function obtenerUbicacion() {
     if (!navigator.geolocation) {
@@ -61,7 +62,7 @@ function ReportForm({ onEnviar, enviando }) {
       return;
     }
     try {
-      await onEnviar({
+      const resultado = await onEnviar({
         autor_nombre: usuario ? undefined : autorNombre.trim() || undefined,
         descripcion: descripcion.trim(),
         foto_url: foto?.url ?? undefined,
@@ -72,6 +73,7 @@ function ReportForm({ onEnviar, enviando }) {
       setFoto(null);
       setUbicacion(null);
       setErrorLocal(null);
+      setAvisoEncolado(resultado?.encolado === true);
     } catch (err) {
       setErrorLocal(err.message);
     }
@@ -106,7 +108,10 @@ function ReportForm({ onEnviar, enviando }) {
       <textarea
         placeholder="¿Qué está pasando? (obligatorio)"
         value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
+        onChange={(e) => {
+          setDescripcion(e.target.value);
+          setAvisoEncolado(false);
+        }}
         rows={3}
         className="w-full rounded-lg border px-3 py-2 text-sm"
         style={inputStyle}
@@ -144,6 +149,16 @@ function ReportForm({ onEnviar, enviando }) {
         <Icon name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"} aria-hidden="true" />
         {ubicacion ? "Ubicación adjunta" : "Compartir mi ubicación"}
       </button>
+
+      {avisoEncolado && (
+        <p
+          className="text-sm rounded-lg px-3 py-2 flex items-start gap-2"
+          style={{ backgroundColor: "var(--color-prealerta-soft)", color: "var(--color-prealerta)" }}
+        >
+          <Icon name="bi-exclamation-triangle-fill" aria-hidden="true" />
+          Sin conexión: tu reporte quedó guardado y se enviará solo apenas vuelva internet.
+        </p>
+      )}
 
       {errorLocal && (
         <p className="text-sm" style={{ color: "var(--color-alerta)" }}>
