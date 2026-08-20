@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getUltimaLectura } from "../lib/api";
 import { useWebSocketEvent } from "../context/WebSocketContext";
 
@@ -9,7 +9,6 @@ export function useUltimaLectura(sensorCodigo = SENSOR_POR_DEFECTO) {
   const [lectura, setLectura] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const primeraCarga = useRef(true);
 
   async function cargar() {
     try {
@@ -17,16 +16,19 @@ export function useUltimaLectura(sensorCodigo = SENSOR_POR_DEFECTO) {
       setLectura(data);
       setError(null);
     } catch (err) {
+      // Sin esto, cambiar de sensor y que el nuevo falle deja en pantalla la
+      // última lectura del sensor anterior, como si fuera del actual.
+      setLectura(null);
       setError(err.message);
     } finally {
-      if (primeraCarga.current) {
-        setLoading(false);
-        primeraCarga.current = false;
-      }
+      setLoading(false);
     }
   }
 
   useEffect(() => {
+    setLoading(true);
+    setLectura(null);
+    setError(null);
     cargar();
     const id = setInterval(cargar, POLL_MS);
     return () => clearInterval(id);

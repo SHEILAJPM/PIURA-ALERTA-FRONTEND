@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import RiverStatus from "../components/RiverStatus";
 import KpiCard, { KpiCardSkeleton } from "../components/KpiCard";
 import AlertCard from "../components/AlertCard";
@@ -7,9 +8,17 @@ import Icon from "../components/Icon";
 import { useUltimaLectura } from "../hooks/useUltimaLectura";
 import { useSensores } from "../hooks/useSensores";
 import { useHistorico } from "../hooks/useHistorico";
+import { usePronosticoLluvia } from "../hooks/usePronosticoLluvia";
 import { recommendations } from "../data/content";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
+const CLAVE_SENSOR_GUARDADO = "piura-alerta-sensor";
+
+const selectStyle = {
+  borderColor: "var(--color-border)",
+  backgroundColor: "var(--color-bg)",
+  color: "var(--color-text)",
+};
 
 const ICONOS_RECOMENDACION = ["bi-broadcast", "bi-water", "bi-map", "bi-megaphone"];
 
@@ -28,23 +37,66 @@ function calcularTendencia(prediccion) {
 }
 
 function Home() {
-  const { lectura, loading: cargandoLectura } = useUltimaLectura(SENSOR_POR_DEFECTO);
   const { data: sensores, loading: cargandoSensores } = useSensores();
-  const { puntos, loading: cargandoHistorico, error: errorHistorico } = useHistorico(SENSOR_POR_DEFECTO, 180);
+  const [sensorCodigo, setSensorCodigo] = useState(
+    () => localStorage.getItem(CLAVE_SENSOR_GUARDADO) || SENSOR_POR_DEFECTO
+  );
 
-  const sensorActivo = sensores?.find((s) => s.codigo === SENSOR_POR_DEFECTO) ?? sensores?.[0];
+  // Si el sensor guardado ya no existe (borrado desde el panel admin), cae al
+  // primero disponible en vez de dejar el dashboard pegado a un código muerto.
+  useEffect(() => {
+    if (sensores && sensores.length > 0 && !sensores.some((s) => s.codigo === sensorCodigo)) {
+      setSensorCodigo(sensores[0].codigo);
+    }
+  }, [sensores, sensorCodigo]);
+
+  function elegirSensor(codigo) {
+    setSensorCodigo(codigo);
+    localStorage.setItem(CLAVE_SENSOR_GUARDADO, codigo);
+  }
+
+  const { lectura, loading: cargandoLectura } = useUltimaLectura(sensorCodigo);
+  const { puntos, loading: cargandoHistorico, error: errorHistorico } = useHistorico(sensorCodigo, 180);
+  const { data: pronostico, error: errorPronostico } = usePronosticoLluvia();
+
+  const sensorActivo = sensores?.find((s) => s.codigo === sensorCodigo) ?? sensores?.[0];
   const cargandoKpis = cargandoLectura || cargandoSensores;
 
   return (
     <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <section className="mb-8">
-        <p
-          className="font-semibold text-sm uppercase tracking-wide"
-          style={{ color: "var(--color-primary)" }}
-        >
-          Sistema de prevención
-        </p>
-        <h2 className="text-3xl md:text-4xl font-bold mt-2">Monitoreo del río Piura</h2>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p
+              className="font-semibold text-sm uppercase tracking-wide"
+              style={{ color: "var(--color-primary)" }}
+            >
+              Sistema de prevención
+            </p>
+            <h2 className="text-3xl md:text-4xl font-bold mt-2">Monitoreo del río Piura</h2>
+          </div>
+
+          {sensores && sensores.length > 1 && (
+            <label className="text-sm">
+              <span className="block font-medium mb-1" style={{ color: "var(--color-text-muted)" }}>
+                Sensor
+              </span>
+              <select
+                value={sensorCodigo}
+                onChange={(e) => elegirSensor(e.target.value)}
+                aria-label="Elegir sensor a monitorear"
+                className="rounded-lg border px-3 py-2 text-sm font-medium"
+                style={selectStyle}
+              >
+                {sensores.map((s) => (
+                  <option key={s.codigo} value={s.codigo}>
+                    {s.nombre} ({s.codigo})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
         <p className="mt-3 max-w-2xl" style={{ color: "var(--color-text-muted)" }}>
           Consulta en tiempo real el estado del río, los niveles registrados por el sensor y las alertas
           activas durante periodos de lluvia.
@@ -53,14 +105,19 @@ function Home() {
 
       <section className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         <div className="lg:col-span-2">
-          <RiverStatus />
+          <RiverStatus
+            sensorCodigo={sensorCodigo}
+            nombreSensor={sensores && sensores.length > 1 ? sensorActivo?.nombre : undefined}
+          />
         </div>
 
         <div
           className="lg:col-span-3 rounded-3xl border p-6"
           style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
         >
-          <h2 className="text-xl font-bold">Tendencia del nivel (últimas 3 horas)</h2>
+          <h2 className="text-xl font-bold">
+            Tendencia del nivel{sensorActivo ? ` — ${sensorActivo.nombre}` : ""} (últimas 3 horas)
+          </h2>
           <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
             Línea punteada: umbrales de prealerta y alerta roja del sensor.
           </p>
@@ -144,6 +201,18 @@ function Home() {
         ) : (
           <p className="mt-2 text-sm" style={{ color: "var(--color-text-muted)" }}>
             Por ahora no hay una proyección de crecida activa. Aun así, ten en cuenta estas recomendaciones:
+          </p>
+        )}
+
+        {!errorPronostico && pronostico && (
+          <p
+            className="mt-3 text-sm inline-flex items-center gap-2 rounded-xl px-3 py-2"
+            style={{ backgroundColor: "var(--color-surface)", color: "var(--color-text)" }}
+          >
+            <Icon name="bi-water" aria-hidden="true" style={{ color: "var(--color-dorado)" }} />
+            Pronóstico: <strong>{Math.round(pronostico.probabilidadMax)}%</strong> de probabilidad de lluvia
+            en las próximas {pronostico.horas} horas
+            {pronostico.mmEsperados > 0 && ` (hasta ${pronostico.mmEsperados.toFixed(1)} mm)`}
           </p>
         )}
 

@@ -6,16 +6,17 @@ import { useEstadoSensores } from "../hooks/useEstadoSensores";
 import Icon from "./Icon";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
+const SIN_LECTURAS = "Sin lecturas todavía para este sensor";
 
 function formatearHora(iso) {
   if (!iso) return "—";
   return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
 }
 
-function RiverStatus() {
-  const { lectura, loading, error, recargar } = useUltimaLectura();
+function RiverStatus({ sensorCodigo = SENSOR_POR_DEFECTO, nombreSensor }) {
+  const { lectura, loading, error, recargar } = useUltimaLectura(sensorCodigo);
   const { data: estadoSensores } = useEstadoSensores();
-  const estadoSensor = estadoSensores?.find((s) => s.codigo === SENSOR_POR_DEFECTO);
+  const estadoSensor = estadoSensores?.find((s) => s.codigo === sensorCodigo);
   const sensorSinSenal = estadoSensor && !estadoSensor.en_linea;
 
   if (loading) {
@@ -27,6 +28,29 @@ function RiverStatus() {
         <Skeleton className="h-4 w-56 mb-4" />
         <Skeleton className="h-10 w-40 mb-3" />
         <Skeleton className="h-4 w-32" />
+      </section>
+    );
+  }
+
+  // Un sensor recién agregado desde el panel admin todavía no tiene
+  // lecturas: es un estado normal, no una falla de conexión, así que no
+  // debe mostrar el mismo aviso rojo de "no se pudo conectar".
+  if (error === SIN_LECTURAS) {
+    return (
+      <section
+        className="rounded-3xl border p-6 text-center"
+        style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+      >
+        <Icon
+          name="bi-broadcast-pin"
+          className="text-3xl"
+          style={{ color: "var(--color-text-muted)" }}
+          aria-hidden="true"
+        />
+        <p className="mt-3 font-semibold">Este sensor todavía no reporta lecturas</p>
+        <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+          En cuanto reciba su primera medición, aparecerá aquí.
+        </p>
       </section>
     );
   }
@@ -63,7 +87,7 @@ function RiverStatus() {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
-            ESTADO ACTUAL DEL RÍO PIURA
+            {nombreSensor ? `ESTADO ACTUAL — ${nombreSensor.toUpperCase()}` : "ESTADO ACTUAL DEL RÍO PIURA"}
           </p>
           <h2 className="font-mono-data text-4xl font-bold mt-2">{lectura.nivel_cm} cm</h2>
           <p className="mt-1" style={{ color: "var(--color-text-muted)" }}>
