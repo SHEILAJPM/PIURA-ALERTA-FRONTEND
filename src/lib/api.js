@@ -73,3 +73,10 @@ export function iniciarSesion({ correo, password }) {
 export function obtenerPerfil() {
   return apiFetch("/api/auth/yo");
 }
+
+export function reaccionarReporte(reporteId, tipo) {
+  return apiFetch(`/api/reportes-ciudadanos/${reporteId}/reaccionar`, {
+    method: "POST",
+    body: JSON.stringify({ tipo }),
+  });
+}

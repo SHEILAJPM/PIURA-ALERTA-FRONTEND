@@ -1,83 +1,187 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import Avatar from "./Avatar";
+import Icon from "./Icon";
+import { formatearDistancia } from "../lib/geo";
 
 const ESTADO_LABEL = {
-  pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },
-  verificado: { text: "Verificado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
-  descartado: { text: "Descartado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
+  pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)" },
+  verificado: { text: "✅ Verificado por Defensa Civil", color: "var(--color-normal)" },
+  en_progreso: { text: "🔄 En progreso", color: "var(--color-primary)" },
+  descartado: { text: "Archivado por moderación", color: "var(--color-text-muted)" },
 };
 
-function formatearFecha(iso) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function formatearRelativo(iso) {
+  const minutos = Math.floor((Date.now() - new Date(iso).getTime()) / 60000);
+  if (minutos < 1) return "ahora";
+  if (minutos < 60) return `${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  if (horas < 24) return `${horas} h`;
+  const dias = Math.floor(horas / 24);
+  if (dias < 7) return `${dias} d`;
+  const semanas = Math.floor(dias / 7);
+  if (semanas < 5) return `${semanas} sem`;
+  return new Date(iso).toLocaleDateString("es-PE", { day: "2-digit", month: "short" });
 }
 
-function ReportCard({ reporte, onLike }) {
-  const { usuario, abrirModal } = useAuth();
-  const [enviandoLike, setEnviandoLike] = useState(false);
-  const estado = ESTADO_LABEL[reporte.estado] ?? ESTADO_LABEL.pendiente;
+async function compartir(reporte) {
+  const texto = `${reporte.usuario_nombre} en Piura Alerta: ${reporte.descripcion}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({ text: texto, url: window.location.href });
+    } catch {
+      // el usuario canceló el share sheet — no es un error a mostrar
+    }
+    return;
+  }
+  await navigator.clipboard?.writeText(`${texto} — ${window.location.href}`);
+}
 
-  async function manejarLike() {
+function ReportCard({ reporte, onReaccion, distanciaKm }) {
+  const { usuario, abrirModal } = useAuth();
+  const [enviandoReaccion, setEnviandoReaccion] = useState(false);
+  const aviso = ESTADO_LABEL[reporte.estado];
+
+  // Determinar qué reacción tiene el usuario actual
+  const reaccionUsuario = reporte.reaccion_usuario || null;
+
+  async function manejarReaccion(tipo) {
     if (!usuario) {
       abrirModal("login");
       return;
     }
-    if (enviandoLike) return;
-    setEnviandoLike(true);
+    if (enviandoReaccion) return;
+
+    // Si ya tiene esta reacción, la quita (toggle)
+    const nuevaReaccion = reaccionUsuario === tipo ? null : tipo;
+
+    setEnviandoReaccion(true);
     try {
-      await onLike(reporte.id);
+      await onReaccion(reporte.id, nuevaReaccion);
     } finally {
-      setEnviandoLike(false);
+      setEnviandoReaccion(false);
     }
   }
 
+  // Obtener contadores de reacciones
+  const contadorUtil = reporte.reacciones_util || 0;
+  const contadorAlerta = reporte.reacciones_alerta || 0;
+  const contadorConfirmo = reporte.reacciones_confirmo || 0;
+
   return (
     <article
-      className="rounded-2xl border p-5"
-      style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+      className={`rounded-2xl border overflow-hidden ${reporte.estado === "verificado" ? "border-green-400 dark:border-green-600" : ""
+        } ${reporte.estado === "en_progreso" ? "border-blue-400 dark:border-blue-600" : ""
+        }`}
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-border)"
+      }}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold">{reporte.usuario_nombre}</p>
-          <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-            {formatearFecha(reporte.creado_en)}
+      <header className="flex items-center gap-3 px-4 py-3">
+        <Avatar nombre={reporte.usuario_nombre} size={36} />
+        <div className="min-w-0 leading-tight">
+          <p className="font-semibold text-sm truncate">
+            {reporte.usuario_nombre}
+            <span className="font-normal" style={{ color: "var(--color-text-muted)" }}>
+              {" "}
+              · {formatearRelativo(reporte.creado_en)}
+              {distanciaKm != null && <> · {formatearDistancia(distanciaKm)}</>}
+            </span>
           </p>
+          {aviso && (
+            <p className="text-xs font-medium" style={{ color: aviso.color }}>
+              {aviso.text}
+            </p>
+          )}
         </div>
-        <span
-          className="text-xs font-semibold px-3 py-1 rounded-full shrink-0"
-          style={{ color: estado.color, backgroundColor: estado.bg }}
+      </header>
+
+      {reporte.posible_spam === true && (
+        <p
+          className="mx-4 mb-3 text-xs font-medium rounded-lg px-3 py-1.5"
+          style={{ backgroundColor: "var(--color-surface-alt)", color: "var(--color-text-muted)" }}
+          title={reporte.motivo_ia ?? undefined}
         >
-          {estado.text}
-        </span>
-      </div>
-
-      <p className="mt-3 text-sm" style={{ color: "var(--color-text)" }}>
-        {reporte.descripcion}
-      </p>
-
-      {reporte.foto_url && (
-        <img
-          src={reporte.foto_url}
-          alt="Foto del reporte"
-          className="mt-3 rounded-xl max-h-64 w-full object-cover"
-        />
+          <Icon name="bi-robot" aria-hidden="true" /> Posible spam — revisa igual, la IA puede equivocarse
+        </p>
       )}
 
-      <div className="mt-3 flex items-center gap-1.5 text-sm">
+      {reporte.foto_url ? (
+        <img
+          src={reporte.foto_url}
+          alt={reporte.descripcion}
+          loading="lazy"
+          className="w-full aspect-square object-cover"
+        />
+      ) : (
+        <div
+          className="w-full px-6 flex items-center justify-center text-center min-h-48"
+          style={{ backgroundColor: "var(--color-primary-soft)" }}
+        >
+          <p className="text-lg font-semibold leading-snug" style={{ color: "var(--color-primary)" }}>
+            “{reporte.descripcion}”
+          </p>
+        </div>
+      )}
+
+      {/* BARRA DE REACCIONES MEJORADA */}
+      <div className="px-4 pt-3 flex items-center gap-2 flex-wrap">
         <button
           type="button"
-          onClick={manejarLike}
-          disabled={enviandoLike}
-          className="flex items-center gap-1.5 disabled:opacity-60"
-          style={{ color: reporte.te_gusta ? "var(--color-alerta)" : "var(--color-text-muted)" }}
+          onClick={() => manejarReaccion("util")}
+          disabled={enviandoReaccion}
+          aria-label="Marcar como útil"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "util"
+              ? "border-green-500 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
         >
-          {reporte.te_gusta ? "❤️" : "🤍"} {reporte.likes_count}
+          👍 Útil {contadorUtil > 0 && `(${contadorUtil})`}
         </button>
+
+        <button
+          type="button"
+          onClick={() => manejarReaccion("alerta")}
+          disabled={enviandoReaccion}
+          aria-label="Marcar como alerta"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "alerta"
+              ? "border-red-500 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+        >
+          🚨 Alerta {contadorAlerta > 0 && `(${contadorAlerta})`}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => manejarReaccion("confirmo")}
+          disabled={enviandoReaccion}
+          aria-label="Confirmar situación"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "confirmo"
+              ? "border-blue-500 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+        >
+          ✅ Confirmo {contadorConfirmo > 0 && `(${contadorConfirmo})`}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => compartir(reporte)}
+          aria-label="Compartir reporte"
+          className="ml-auto transition-transform active:scale-90 text-gray-500 dark:text-gray-400"
+        >
+          <Icon name="bi-send" aria-hidden="true" className="text-xl -rotate-12" />
+        </button>
+      </div>
+
+      <div className="px-4 pt-2 pb-4">
+        {reporte.foto_url && (
+          <p className="text-sm mt-1">
+            <span className="font-semibold">{reporte.usuario_nombre}</span> {reporte.descripcion}
+          </p>
+        )}
       </div>
     </article>
   );
