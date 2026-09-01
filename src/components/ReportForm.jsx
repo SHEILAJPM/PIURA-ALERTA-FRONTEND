@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import { useState, useEffect } from "react";
 import { subirFoto } from "../lib/cloudinary";
 import { useAuth } from "../context/AuthContext";
+import Avatar from "./Avatar";
+import Icon from "./Icon";
 
 const inputStyle = {
   borderColor: "var(--color-border)",
@@ -16,21 +18,68 @@ function ReportForm({ onEnviar, enviando }) {
   const [subiendoFoto, setSubiendoFoto] = useState(false);
   const [ubicacion, setUbicacion] = useState(null);
   const [errorLocal, setErrorLocal] = useState(null);
+  const [avisoEncolado, setAvisoEncolado] = useState(false);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
 
-  function obtenerUbicacion() {
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    setObteniendoUbicacion(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUbicacion({
+          lon: pos.coords.longitude,
+          lat: pos.coords.latitude,
+        });
+        setObteniendoUbicacion(false);
+        setErrorLocal(null);
+      },
+      (err) => {
+        // Silencioso si el usuario deniega o hay error
+        setObteniendoUbicacion(false);
+        // Solo mostramos error si el usuario lo pide explícitamente
+        if (err.code === err.PERMISSION_DENIED) {
+          // No mostramos error automático, solo guardamos que no hay ubicación
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000, // 1 minuto de caché
+      }
+    );
+  }, []); 
+
+  function obtenerUbicacionManual() {
     if (!navigator.geolocation) {
       setErrorLocal("Tu navegador no soporta geolocalización.");
       return;
     }
+    setObteniendoUbicacion(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUbicacion({ lon: pos.coords.longitude, lat: pos.coords.latitude }),
-      () => setErrorLocal("No se pudo obtener tu ubicación.")
+      (pos) => {
+        setUbicacion({ lon: pos.coords.longitude, lat: pos.coords.latitude });
+        setObteniendoUbicacion(false);
+        setErrorLocal(null);
+      },
+      () => {
+        setObteniendoUbicacion(false);
+        setErrorLocal("No se pudo obtener tu ubicación. Puedes intentar de nuevo.");
+      }
     );
   }
 
   async function manejarSeleccionFoto(e) {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
+
+    // Validar tamaño (máximo 5MB)
+    if (archivo.size > 5 * 1024 * 1024) {
+      setErrorLocal("La imagen es demasiado grande. Máximo 5MB.");
+      return;
+    }
 
     const previsualizacion = URL.createObjectURL(archivo);
     setFoto({ url: null, previsualizacion });
@@ -59,7 +108,7 @@ function ReportForm({ onEnviar, enviando }) {
       return;
     }
     try {
-      await onEnviar({
+      const resultado = await onEnviar({
         autor_nombre: usuario ? undefined : autorNombre.trim() || undefined,
         descripcion: descripcion.trim(),
         foto_url: foto?.url ?? undefined,
@@ -70,9 +119,15 @@ function ReportForm({ onEnviar, enviando }) {
       setFoto(null);
       setUbicacion(null);
       setErrorLocal(null);
+      setAvisoEncolado(resultado?.encolado === true);
     } catch (err) {
       setErrorLocal(err.message);
     }
+  }
+
+  function formatearUbicacion() {
+    if (!ubicacion) return null;
+    return `${ubicacion.lat.toFixed(5)}, ${ubicacion.lon.toFixed(5)}`;
   }
 
   return (
@@ -84,9 +139,12 @@ function ReportForm({ onEnviar, enviando }) {
       <h3 className="font-bold">Reportar una situación</h3>
 
       {usuario ? (
-        <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-          Publicando como <strong>{usuario.nombre}</strong>
-        </p>
+        <div className="flex items-center gap-2">
+          <Avatar nombre={usuario.nombre} size={28} />
+          <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+            Publicando como <strong style={{ color: "var(--color-text)" }}>{usuario.nombre}</strong>
+          </p>
+        </div>
       ) : (
         <input
           type="text"
@@ -101,7 +159,10 @@ function ReportForm({ onEnviar, enviando }) {
       <textarea
         placeholder="¿Qué está pasando? (obligatorio)"
         value={descripcion}
-        onChange={(e) => setDescripcion(e.target.value)}
+        onChange={(e) => {
+          setDescripcion(e.target.value);
+          setAvisoEncolado(false);
+        }}
         rows={3}
         className="w-full rounded-lg border px-3 py-2 text-sm"
         style={inputStyle}
@@ -122,19 +183,50 @@ function ReportForm({ onEnviar, enviando }) {
         </div>
       )}
 
-      <label className="text-sm font-semibold cursor-pointer" style={{ color: "var(--color-primary)" }}>
-        📷 {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
+      <label
+        className="text-sm font-semibold cursor-pointer flex items-center gap-1.5"
+        style={{ color: "var(--color-primary)" }}
+      >
+        <Icon name="bi-camera" aria-hidden="true" /> {foto ? "Cambiar foto" : "Adjuntar foto (opcional)"}
         <input type="file" accept="image/*" onChange={manejarSeleccionFoto} className="hidden" />
       </label>
 
-      <button
-        type="button"
-        onClick={obtenerUbicacion}
-        className="block text-sm font-semibold"
-        style={{ color: "var(--color-primary)" }}
-      >
-        {ubicacion ? "📍 Ubicación adjunta" : "📍 Compartir mi ubicación"}
-      </button>
+      {/* 🔥 NUEVO: Botón de ubicación con estado mejorado */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={obtenerUbicacionManual}
+          className="flex items-center gap-1.5 text-sm font-semibold"
+          style={{ color: "var(--color-primary)" }}
+          disabled={obteniendoUbicacion}
+        >
+          <Icon
+            name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"}
+            aria-hidden="true"
+          />
+          {obteniendoUbicacion ? "Obteniendo ubicación..." : ubicacion ? "Actualizar ubicación" : "Compartir mi ubicación"}
+        </button>
+        {ubicacion && (
+          <span className="text-xs font-mono-data" style={{ color: "var(--color-text-muted)" }}>
+            📍 {formatearUbicacion()}
+          </span>
+        )}
+        {obteniendoUbicacion && (
+          <span className="text-xs animate-pulse" style={{ color: "var(--color-prealerta)" }}>
+            Buscando GPS...
+          </span>
+        )}
+      </div>
+
+      {avisoEncolado && (
+        <p
+          className="text-sm rounded-lg px-3 py-2 flex items-start gap-2"
+          style={{ backgroundColor: "var(--color-prealerta-soft)", color: "var(--color-prealerta)" }}
+        >
+          <Icon name="bi-exclamation-triangle-fill" aria-hidden="true" />
+          Sin conexión: tu reporte quedó guardado y se enviará solo apenas vuelva internet.
+        </p>
+      )}
 
       {errorLocal && (
         <p className="text-sm" style={{ color: "var(--color-alerta)" }}>

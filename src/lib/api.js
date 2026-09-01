@@ -80,3 +80,28 @@ export function reaccionarReporte(reporteId, tipo) {
     body: JSON.stringify({ tipo }),
   });
 }
+
+export function obtenerClavePublicaPush() {
+  return apiFetch("/api/push/clave-publica");
+}
+
+export function suscribirPush(subscription) {
+  return apiFetch("/api/push/suscribir", {
+    method: "POST",
+    body: JSON.stringify(subscription),
+  });
+}
+
+export function desuscribirPush(endpoint) {
+  return apiFetch("/api/push/desuscribir", {
+    method: "POST",
+    body: JSON.stringify({ endpoint }),
+  });
+}
+
+export function enviarNotificacionPrueba(tipo = 'general') {
+  return apiFetch("/api/push/probar", {
+    method: "POST",
+    body: JSON.stringify({ tipo }),
+  });
+}
