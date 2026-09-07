@@ -2,8 +2,8 @@
 
 ## 👥 Integrantes
 
-* **Sheila Jacqueline Principe Merino** — Lead Hardware IoT & Backend Engineer
-* **Adrian Steven Juarez Panta** — Lead Frontend UI/UX & Structural Engineer
+- **Sheila Jacqueline Principe Merino** — Lead Hardware IoT & Backend Engineer
+- **Adrian Steven Juarez Panta** — Lead Frontend UI/UX & Structural Engineer
 
 ## 📝 Descripción
 
@@ -13,23 +13,24 @@ Es un Dashboard web interactivo desarrollado con **React 18**, utilizando una in
 
 La aplicación permite:
 
-* Monitorear el nivel del agua en tiempo real.
-* Visualizar el estado de riesgo: Verde, Amarillo y Rojo.
-* Mostrar sensores mediante un mapa GIS.
-* Visualizar gráficos de nivel de agua.
-* Recibir información mediante WebSockets.
-* Consultar alertas enviadas a la población.
+- Monitorear el nivel del agua en tiempo real.
+- Visualizar el estado de riesgo: Verde, Amarillo y Rojo.
+- Mostrar sensores mediante un mapa GIS.
+- Visualizar gráficos de nivel de agua.
+- Recibir información mediante WebSockets.
+- Consultar alertas enviadas a la población.
 
 ## 🛠️ Tecnologías
 
-| Tecnología              | Uso                                        |
-| ----------------------- | ------------------------------------------ |
-| React 18                | Desarrollo de componentes e interfaz       |
-| Tailwind CSS            | Diseño y estilos responsivos               |
-| Recharts                | Gráficos en tiempo real                    |
-| Leaflet / React-Leaflet | Mapas interactivos                         |
-| Lucide React            | Iconos                                     |
-| WebSocket API           | Comunicación en tiempo real con el Backend |
+| Tecnología              | Uso                                               |
+| ----------------------- | ------------------------------------------------- |
+| React 19                | Desarrollo de componentes e interfaz              |
+| Tailwind CSS            | Diseño y estilos responsivos                      |
+| Recharts                | Gráficos en tiempo real                           |
+| Leaflet / React-Leaflet | Mapas interactivos                                |
+| SVG inline (`Icon.jsx`) | Íconos, sin cargar una fuente de íconos completa  |
+| WebSocket API           | Comunicación en tiempo real con el Backend        |
+| vite-plugin-pwa         | App instalable + último dato visible sin conexión |
 
 ## ⚡ Instalación
 
@@ -64,22 +65,50 @@ http://localhost:5173
 npm run build
 ```
 
+## 🧪 Tests
+
+Unitarios/componente (Vitest + Testing Library, con mocks — no necesitan nada corriendo):
+
+```bash
+npm test
+```
+
+End-to-end (Playwright, contra el stack real: backend + frontend + la base de
+Neon de desarrollo). Levanta lo que falte solo, o reusa lo que ya esté
+corriendo (`npm run dev` en ambos repos):
+
+```bash
+npx playwright install chromium   # una sola vez
+npm run test:e2e
+```
+
+Cubre los 3 flujos críticos: reportar sin sesión, registro/login/logout, y que
+`/admin/*` rechace a quien no tiene sesión. Como pega contra la base real,
+crea una cuenta y un reporte de prueba cada vez que corre (no es para CI, es
+para verificar el flujo completo en local antes de un release).
+
 ## 🔌 Conexión con Backend
 
-El Frontend recibe información en tiempo real mediante WebSockets:
+El Frontend recibe información en tiempo real mediante WebSockets, sobre el
+mismo host/puerto que la API REST (ver backend):
 
 ```text
-ws://localhost:8080
+ws://localhost:4000
 ```
+
+## 🚢 Despliegue
+
+Ver [`DEPLOY.md`](DEPLOY.md) para la guía completa (Vercel/Netlify, cuenta de
+Cloudinary y variables de entorno de producción).
 
 ## 📊 Funcionalidades principales
 
-* Dashboard de monitoreo.
-* Indicadores KPI.
-* Mapa GIS.
-* Gráfico de nivel de agua.
-* Semáforo de riesgo.
-* Registro de alertas.
-* Visualización de albergues.
-* Reportes.
-* Comunicación en tiempo real.
+- Dashboard de monitoreo.
+- Indicadores KPI.
+- Mapa GIS.
+- Gráfico de nivel de agua.
+- Semáforo de riesgo.
+- Registro de alertas.
+- Visualización de albergues.
+- Reportes.
+- Comunicación en tiempo real.
