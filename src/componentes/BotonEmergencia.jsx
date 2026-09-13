@@ -26,6 +26,11 @@ function BotonSOS() {
   const { usuario } = useAuth();
   const [estado, setEstado] = useState("inicial"); // inicial | confirmando | enviando | enviado | error
   const [error, setError] = useState(null);
+  // Solo tiene sentido pedirlo sin cuenta: con sesión, el backend ya saca
+  // nombre/teléfono del perfil (ver POST /api/sos). Opcional a propósito --
+  // en una emergencia real no hay que trabar el envío por un campo vacío.
+  const [nombreContacto, setNombreContacto] = useState("");
+  const [telefonoContacto, setTelefonoContacto] = useState("");
 
   async function confirmarEnvio() {
     setEstado("enviando");
@@ -37,7 +42,12 @@ function BotonSOS() {
       return;
     }
     try {
-      await enviarSOS({ lon: ubicacion.lon, lat: ubicacion.lat });
+      await enviarSOS({
+        lon: ubicacion.lon,
+        lat: ubicacion.lat,
+        nombre_contacto: nombreContacto.trim() || undefined,
+        telefono_contacto: telefonoContacto.trim() || undefined,
+      });
       setEstado("enviado");
     } catch (err) {
       setError(err.message);
@@ -67,6 +77,29 @@ function BotonSOS() {
           <p className="text-sm font-semibold mb-3" style={{ color: "var(--color-alerta)" }}>
             ¿Confirmas que necesitas ayuda ahora? Vamos a mandar tu ubicación exacta a Defensa Civil.
           </p>
+          {!usuario && (
+            <div className="space-y-2 mb-3">
+              <p className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+                Opcional: dejar tu nombre y teléfono ayuda a que te ubiquen más rápido.
+              </p>
+              <input
+                type="text"
+                placeholder="Tu nombre (opcional)"
+                value={nombreContacto}
+                onChange={(e) => setNombreContacto(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
+              />
+              <input
+                type="tel"
+                placeholder="Tu teléfono (opcional)"
+                value={telefonoContacto}
+                onChange={(e) => setTelefonoContacto(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg)" }}
+              />
+            </div>
+          )}
           <div className="flex gap-2">
             <button
               type="button"
