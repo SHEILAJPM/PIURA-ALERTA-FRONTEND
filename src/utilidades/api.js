@@ -320,3 +320,14 @@ export function actualizarEstadoSOS(alertaId, estado) {
     body: JSON.stringify({ estado }),
   });
 }
+
+export function getConfiguracion() {
+  return apiFetch("/api/configuracion");
+}
+
+export function actualizarConfiguracion(cambios) {
+  return apiFetch("/api/configuracion", {
+    method: "PATCH",
+    body: JSON.stringify(cambios),
+  });
+}

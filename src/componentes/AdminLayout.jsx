@@ -20,7 +20,7 @@ const GRUPOS = [
       { to: "/admin/auditoria", label: "Registro de Auditoría", icon: "bi-journal-text" },
       { to: "/admin/polizas", label: "Pólizas de Seguro", icon: "bi-check-circle-fill" },
       { to: "/admin/asistente", label: "Feedback del Asistente IA", icon: "bi-robot" },
-      { to: "/admin/impacto", label: "Panel de Impacto", icon: "bi-graph-up-arrow" },
+      { to: "/admin/configuracion", label: "Configuración de Notificaciones", icon: "bi-bell" },
     ],
   },
   {
@@ -42,6 +42,7 @@ const GRUPOS = [
       { to: "/admin/albergues", label: "Albergues: Inventario y Aforo", icon: "bi-house-door" },
       { to: "/admin/reportes", label: "Moderación de Publicaciones", icon: "bi-clipboard-check" },
       { to: "/admin/chequeos-seguridad", label: "Chequeos de Seguridad", icon: "bi-person-badge" },
+      { to: "/admin/impacto", label: "Panel de Impacto", icon: "bi-graph-up-arrow" },
     ],
   },
 ];
