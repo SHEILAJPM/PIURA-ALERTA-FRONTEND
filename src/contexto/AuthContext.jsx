@@ -4,6 +4,7 @@ import { registrarUsuario, iniciarSesion, verificarCodigo2FA } from "../utilidad
 const AuthContext = createContext(null);
 const STORAGE_KEY = "piura-alerta-auth";
 const EVENTO_SESION_EXPIRADA = "piura-alerta:sesion-expirada";
+const EVENTO_SESION_CAMBIO = "piura-alerta:sesion-cambio";
 
 // utilidades/api.js vive fuera de React (lo usan hooks y llamadas sueltas), así que
 // no puede leer/actualizar este contexto directo. Dispara un evento del DOM
@@ -11,6 +12,14 @@ const EVENTO_SESION_EXPIRADA = "piura-alerta:sesion-expirada";
 // lo es); el AuthProvider más abajo lo escucha para cerrar sesión y avisar.
 export function dispararSesionExpirada() {
   window.dispatchEvent(new Event(EVENTO_SESION_EXPIRADA));
+}
+
+// Mismo motivo: WebSocketContext.jsx necesita re-mandar el token cada vez que
+// cambia la sesión (login/logout/cambio de cuenta), no solo al abrir el
+// socket, para que el servidor sepa a qué rol tratarlo (ver
+// transmitirRestringido en el backend).
+export function dispararSesionCambio() {
+  window.dispatchEvent(new Event(EVENTO_SESION_CAMBIO));
 }
 
 function leerSesionGuardada() {
@@ -34,6 +43,7 @@ export function AuthProvider({ children }) {
     } else {
       localStorage.removeItem(STORAGE_KEY);
     }
+    dispararSesionCambio();
   }, [sesion]);
 
   useEffect(() => {
