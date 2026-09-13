@@ -18,6 +18,7 @@ function Reportes() {
     enviando,
     enviarReporte,
     darLike,
+    confirmarReporte,
     cargarMas,
     cargandoMas,
     hayMas,
@@ -131,7 +132,13 @@ function Reportes() {
           ) : (
             <div className="space-y-4">
               {cercania.reportesOrdenados.map(({ reporte, distanciaKm }) => (
-                <ReportCard key={reporte.id} reporte={reporte} onLike={darLike} distanciaKm={distanciaKm} />
+                <ReportCard
+                  key={reporte.id}
+                  reporte={reporte}
+                  onLike={darLike}
+                  onConfirmar={confirmarReporte}
+                  distanciaKm={distanciaKm}
+                />
               ))}
               {hayMas && (
                 <button

@@ -38,9 +38,10 @@ async function compartir(reporte) {
   await navigator.clipboard?.writeText(`${texto} — ${window.location.href}`);
 }
 
-function ReportCard({ reporte, onLike, distanciaKm }) {
+function ReportCard({ reporte, onLike, onConfirmar, distanciaKm }) {
   const { usuario, abrirModal } = useAuth();
   const [enviandoLike, setEnviandoLike] = useState(false);
+  const [enviandoConfirmar, setEnviandoConfirmar] = useState(false);
   const aviso = ESTADO_LABEL[reporte.estado];
 
   async function manejarLike() {
@@ -54,6 +55,20 @@ function ReportCard({ reporte, onLike, distanciaKm }) {
       await onLike(reporte.id);
     } finally {
       setEnviandoLike(false);
+    }
+  }
+
+  async function manejarConfirmar() {
+    if (!usuario) {
+      abrirModal("login");
+      return;
+    }
+    if (enviandoConfirmar) return;
+    setEnviandoConfirmar(true);
+    try {
+      await onConfirmar(reporte.id);
+    } finally {
+      setEnviandoConfirmar(false);
     }
   }
 
@@ -126,6 +141,21 @@ function ReportCard({ reporte, onLike, distanciaKm }) {
         </button>
         <button
           type="button"
+          onClick={manejarConfirmar}
+          disabled={enviandoConfirmar}
+          aria-label={reporte.tu_confirmaste ? "Quitar confirmación" : "Confirmar que esto es real"}
+          title="Confirmar que esto es real"
+          className="disabled:opacity-60 transition-transform active:scale-90"
+          style={{ color: reporte.tu_confirmaste ? "var(--color-primary)" : "var(--color-text)" }}
+        >
+          <Icon
+            name={reporte.tu_confirmaste ? "bi-check-circle-fill" : "bi-check-lg"}
+            aria-hidden="true"
+            className="text-2xl"
+          />
+        </button>
+        <button
+          type="button"
           onClick={() => compartir(reporte)}
           aria-label="Compartir reporte"
           className="transition-transform active:scale-90"
@@ -137,6 +167,12 @@ function ReportCard({ reporte, onLike, distanciaKm }) {
 
       <div className="px-4 pt-2 pb-4">
         {reporte.likes_count > 0 && <p className="text-sm font-semibold">{reporte.likes_count} me gusta</p>}
+        {reporte.confirmaciones_count > 0 && (
+          <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+            {reporte.confirmaciones_count}{" "}
+            {reporte.confirmaciones_count === 1 ? "persona confirmó" : "personas confirmaron"} que esto es real
+          </p>
+        )}
         {reporte.foto_url && (
           <p className="text-sm mt-1">
             <span className="font-semibold">{reporte.usuario_nombre}</span> {reporte.descripcion}

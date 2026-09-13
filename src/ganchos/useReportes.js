@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
-import { getReportes, crearReporte, darLike as darLikeApi, actualizarEstadoReporte } from "../utilidades/api";
+import {
+  getReportes,
+  crearReporte,
+  darLike as darLikeApi,
+  confirmarReporte as confirmarReporteApi,
+  actualizarEstadoReporte,
+} from "../utilidades/api";
 import { useWebSocketEvent } from "../contexto/WebSocketContext";
 import { encolarReporte, contarPendientes, reintentarColaReportes } from "../utilidades/colaOffline";
 
@@ -82,6 +88,17 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
     );
   }, []);
 
+  const confirmarReporte = useCallback(async (reporteId) => {
+    const resultado = await confirmarReporteApi(reporteId);
+    setReportes((prev) =>
+      prev.map((reporte) =>
+        reporte.id === reporteId
+          ? { ...reporte, confirmaciones_count: resultado.confirmaciones_count, tu_confirmaste: resultado.tu_confirmaste }
+          : reporte
+      )
+    );
+  }, []);
+
   const actualizarEstado = useCallback(async (reporteId, estado) => {
     const resultado = await actualizarEstadoReporte(reporteId, estado);
     setReportes((prev) =>
@@ -112,6 +129,7 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
     enviando,
     enviarReporte,
     darLike,
+    confirmarReporte,
     actualizarEstado,
     cargarMas,
     cargandoMas,
