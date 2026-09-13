@@ -19,7 +19,12 @@ async function apiFetch(path, options) {
     if (res.status === 401 && token) {
       dispararSesionExpirada();
     }
-    throw new Error(body.error ?? `Error ${res.status} al consultar ${path}`);
+    const error = new Error(body.error ?? `Error ${res.status} al consultar ${path}`);
+    // Para que quien llama pueda distinguir casos (ej. 404 "sin lecturas
+    // todavía" vs. una falla real de conexión) sin comparar el mensaje
+    // exacto, que puede cambiar del lado del backend sin avisar.
+    error.status = res.status;
+    throw error;
   }
   if (res.status === 204) return null;
   return res.json();
@@ -89,6 +94,10 @@ export function crearReporte({ autor_nombre, descripcion, foto_url, lon, lat }) 
 
 export function darLike(reporteId) {
   return apiFetch(`/api/reportes-ciudadanos/${reporteId}/like`, { method: "POST" });
+}
+
+export function confirmarReporte(reporteId) {
+  return apiFetch(`/api/reportes-ciudadanos/${reporteId}/confirmar`, { method: "POST" });
 }
 
 export function actualizarEstadoReporte(reporteId, estado) {
@@ -275,4 +284,20 @@ export function getFeedbackAsistente() {
 
 export function getPolizas() {
   return apiFetch("/api/polizas");
+}
+
+export function marcarSeguro() {
+  return apiFetch("/api/chequeos-seguridad", { method: "POST" });
+}
+
+export function getMiChequeo() {
+  return apiFetch("/api/chequeos-seguridad/mio");
+}
+
+export function getChequeosSeguridad() {
+  return apiFetch("/api/chequeos-seguridad");
+}
+
+export function getImpacto() {
+  return apiFetch("/api/impacto");
 }

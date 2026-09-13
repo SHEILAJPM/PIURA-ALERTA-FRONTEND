@@ -5,6 +5,7 @@ import AlertCard from "../componentes/AlertCard";
 import LevelChart from "../componentes/LevelChart";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
+import ChequeoSeguridad from "../componentes/ChequeoSeguridad";
 import Icon from "../componentes/Icon";
 import { useUltimaLectura } from "../ganchos/useUltimaLectura";
 import { useSensores } from "../ganchos/useSensores";
@@ -14,11 +15,6 @@ import { recommendations } from "../datos/content";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
 const CLAVE_SENSOR_GUARDADO = "piura-alerta-sensor";
-// Mismo string que RiverStatus.jsx: un sensor recién agregado sin lecturas
-// todavía es un estado normal, no una falla -- no debe verse igual que un
-// backend caído ni mostrarse como "sin alertas activas" (sería inventar un
-// dato que todavía no existe).
-const SIN_LECTURAS = "Sin lecturas todavía para este sensor";
 
 const selectStyle = {
   borderColor: "var(--color-border)",
@@ -61,7 +57,12 @@ function Home() {
     localStorage.setItem(CLAVE_SENSOR_GUARDADO, codigo);
   }
 
-  const { lectura, loading: cargandoLectura, error: errorLectura } = useUltimaLectura(sensorCodigo);
+  const {
+    lectura,
+    loading: cargandoLectura,
+    error: errorLectura,
+    sinLecturas,
+  } = useUltimaLectura(sensorCodigo);
   const { puntos, loading: cargandoHistorico, error: errorHistorico } = useHistorico(sensorCodigo, 180);
   const { data: pronostico, error: errorPronostico } = usePronosticoLluvia();
 
@@ -191,11 +192,11 @@ function Home() {
         </div>
         {cargandoLectura ? (
           <Skeleton className="h-24 rounded-2xl" />
-        ) : errorLectura && errorLectura !== SIN_LECTURAS ? (
+        ) : errorLectura && !sinLecturas ? (
           <ErrorBanner
             message={`No se pudo verificar el estado de alertas (${errorLectura}). No asumas que no hay riesgo.`}
           />
-        ) : errorLectura === SIN_LECTURAS ? (
+        ) : sinLecturas ? (
           <p
             className="text-sm rounded-2xl border p-5"
             style={{ borderColor: "var(--color-border)", color: "var(--color-text-muted)" }}
@@ -206,6 +207,8 @@ function Home() {
           <AlertCard estado={lectura?.estado} />
         )}
       </section>
+
+      <ChequeoSeguridad />
 
       <section
         className="mt-8 mb-10 rounded-3xl p-6 border"
