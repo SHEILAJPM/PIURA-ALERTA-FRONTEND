@@ -4,12 +4,14 @@ import Avatar from "./Avatar";
 import Icon from "./Icon";
 import { formatearDistancia } from "../utilidades/geo";
 
-// No incluye 'descartado': el feed público nunca recibe reportes archivados
-// (ver GET /api/reportes-ciudadanos), así que esta tarjeta no necesita saber
-// mostrarlos.
+// 'descartado' solo lo ve el propio autor en "Mis reportes" (ver
+// MisReportes.jsx): el feed público nunca recibe reportes archivados (ver
+// GET /api/reportes-ciudadanos), pero soloMios=true es la excepción a
+// propósito, para que alguien sepa por qué su reporte no se publicó.
 const ESTADO_LABEL = {
   pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)" },
   verificado: null, // el caso normal no necesita aclaración aparte
+  descartado: { text: "No se publicó (archivado)", color: "var(--color-alerta)" },
 };
 
 function formatearRelativo(iso) {

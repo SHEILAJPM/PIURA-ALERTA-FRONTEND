@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexto/AuthContext";
 import { useResource } from "../ganchos/useResource";
 import { useSensores } from "../ganchos/useSensores";
-import { obtenerPerfil, actualizarPerfil, cambiarPassword } from "../utilidades/api";
+import { obtenerPerfil, actualizarPerfil, cambiarPassword, reenviarVerificacionCorreo } from "../utilidades/api";
 import Avatar from "../componentes/Avatar";
 import Icon from "../componentes/Icon";
 import Skeleton from "../componentes/Skeleton";
@@ -44,6 +44,58 @@ function Aviso({ tipo, children }) {
       />
       {children}
     </p>
+  );
+}
+
+function AvisoCorreoNoVerificado() {
+  const [estado, setEstado] = useState("inicial"); // inicial | enviando | enviado | error
+  const [error, setError] = useState(null);
+
+  async function reenviar() {
+    setEstado("enviando");
+    setError(null);
+    try {
+      await reenviarVerificacionCorreo();
+      setEstado("enviado");
+    } catch (err) {
+      setError(err.message);
+      setEstado("error");
+    }
+  }
+
+  return (
+    <div
+      className="rounded-2xl border p-4 flex flex-wrap items-center justify-between gap-3"
+      style={{ backgroundColor: "var(--color-prealerta-soft)", borderColor: "var(--color-prealerta)" }}
+    >
+      <div>
+        <p className="text-sm font-semibold" style={{ color: "var(--color-prealerta)" }}>
+          <Icon name="bi-exclamation-triangle-fill" aria-hidden="true" className="mr-1.5" />
+          Todavía no confirmaste tu correo.
+        </p>
+        {estado === "enviado" && (
+          <p className="text-xs mt-1" style={{ color: "var(--color-text-muted)" }}>
+            Te mandamos un nuevo enlace, revisa tu bandeja (y spam).
+          </p>
+        )}
+        {error && (
+          <p className="text-xs mt-1" style={{ color: "var(--color-alerta)" }}>
+            {error}
+          </p>
+        )}
+      </div>
+      {estado !== "enviado" && (
+        <button
+          type="button"
+          onClick={reenviar}
+          disabled={estado === "enviando"}
+          className="shrink-0 text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-60"
+          style={{ backgroundColor: "var(--color-prealerta)" }}
+        >
+          {estado === "enviando" ? "Enviando..." : "Reenviar correo"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -311,6 +363,21 @@ function MiPerfil() {
                 </p>
               </div>
             </div>
+
+            {!perfil.correo_verificado && <AvisoCorreoNoVerificado />}
+
+            <Tarjeta titulo="Mis reportes">
+              <p className="text-sm mb-3" style={{ color: "var(--color-text-muted)" }}>
+                Revisa el historial de lo que reportaste, incluido lo que se archivó.
+              </p>
+              <Link
+                to="/mis-reportes"
+                className="inline-block rounded-lg px-4 py-2 text-sm font-semibold text-white"
+                style={{ backgroundColor: "var(--color-primary)" }}
+              >
+                Ver mis reportes
+              </Link>
+            </Tarjeta>
 
             <Tarjeta titulo="Seguro contra inundaciones">
               <p className="text-sm mb-3" style={{ color: "var(--color-text-muted)" }}>
