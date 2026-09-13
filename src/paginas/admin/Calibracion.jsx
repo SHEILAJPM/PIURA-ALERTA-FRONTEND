@@ -5,6 +5,49 @@ import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 
+// Prealerta y alerta roja se editan igual, solo cambian etiqueta/color/valor
+// -- antes eran dos bloques de JSX casi idénticos copiados uno debajo del
+// otro dentro de TarjetaSensor.
+function FilaUmbral({ id, etiqueta, color, editando, valor, onCambiar, valorMostrado }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      {editando ? (
+        <>
+          <label htmlFor={id} className="text-sm font-medium" style={{ color }}>
+            {etiqueta}
+          </label>
+          <div className="flex items-center gap-1">
+            <input
+              id={id}
+              type="number"
+              min="0"
+              step="0.1"
+              value={valor}
+              onChange={onCambiar}
+              className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
+              style={{
+                borderColor: "var(--color-border)",
+                backgroundColor: "var(--color-bg)",
+                color: "var(--color-text)",
+              }}
+            />
+            <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
+              cm
+            </span>
+          </div>
+        </>
+      ) : (
+        <>
+          <span className="text-sm font-medium" style={{ color }}>
+            {etiqueta}
+          </span>
+          <span className="font-mono-data font-semibold">{valorMostrado} cm</span>
+        </>
+      )}
+    </div>
+  );
+}
+
 function TarjetaSensor({ sensor, onGuardar }) {
   const [editando, setEditando] = useState(false);
   const [prealerta, setPrealerta] = useState(sensor.nivel_prealerta_cm);
@@ -53,84 +96,24 @@ function TarjetaSensor({ sensor, onGuardar }) {
       </p>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          {editando ? (
-            <>
-              <label
-                htmlFor={`prealerta-${sensor.id}`}
-                className="text-sm font-medium"
-                style={{ color: "var(--color-prealerta)" }}
-              >
-                Prealerta
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  id={`prealerta-${sensor.id}`}
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={prealerta}
-                  onChange={(e) => setPrealerta(e.target.value)}
-                  className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
-                  style={{
-                    borderColor: "var(--color-border)",
-                    backgroundColor: "var(--color-bg)",
-                    color: "var(--color-text)",
-                  }}
-                />
-                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                  cm
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <span className="text-sm font-medium" style={{ color: "var(--color-prealerta)" }}>
-                Prealerta
-              </span>
-              <span className="font-mono-data font-semibold">{sensor.nivel_prealerta_cm} cm</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center justify-between gap-3">
-          {editando ? (
-            <>
-              <label
-                htmlFor={`alerta-roja-${sensor.id}`}
-                className="text-sm font-medium"
-                style={{ color: "var(--color-alerta)" }}
-              >
-                Alerta roja
-              </label>
-              <div className="flex items-center gap-1">
-                <input
-                  id={`alerta-roja-${sensor.id}`}
-                  type="number"
-                  min="0"
-                  step="0.1"
-                  value={alertaRoja}
-                  onChange={(e) => setAlertaRoja(e.target.value)}
-                  className="w-20 rounded-lg border px-2 py-1 text-sm font-mono-data text-right"
-                  style={{
-                    borderColor: "var(--color-border)",
-                    backgroundColor: "var(--color-bg)",
-                    color: "var(--color-text)",
-                  }}
-                />
-                <span className="text-xs" style={{ color: "var(--color-text-muted)" }}>
-                  cm
-                </span>
-              </div>
-            </>
-          ) : (
-            <>
-              <span className="text-sm font-medium" style={{ color: "var(--color-alerta)" }}>
-                Alerta roja
-              </span>
-              <span className="font-mono-data font-semibold">{sensor.nivel_alerta_roja_cm} cm</span>
-            </>
-          )}
-        </div>
+        <FilaUmbral
+          id={`prealerta-${sensor.id}`}
+          etiqueta="Prealerta"
+          color="var(--color-prealerta)"
+          editando={editando}
+          valor={prealerta}
+          onCambiar={(e) => setPrealerta(e.target.value)}
+          valorMostrado={sensor.nivel_prealerta_cm}
+        />
+        <FilaUmbral
+          id={`alerta-roja-${sensor.id}`}
+          etiqueta="Alerta roja"
+          color="var(--color-alerta)"
+          editando={editando}
+          valor={alertaRoja}
+          onCambiar={(e) => setAlertaRoja(e.target.value)}
+          valorMostrado={sensor.nivel_alerta_roja_cm}
+        />
       </div>
 
       {error && (

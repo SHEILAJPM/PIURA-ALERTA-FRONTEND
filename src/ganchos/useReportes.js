@@ -7,9 +7,11 @@ import {
   actualizarEstadoReporte,
 } from "../utilidades/api";
 import { useWebSocketEvent } from "../contexto/WebSocketContext";
+import { useAuth } from "../contexto/AuthContext";
 import { encolarReporte, contarPendientes, reintentarColaReportes } from "../utilidades/colaOffline";
 
-export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
+export function useReportes(limite = 30, { incluirArchivados = false, soloMios = false } = {}) {
+  const { usuario } = useAuth();
   const [reportes, setReportes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cargandoMas, setCargandoMas] = useState(false);
@@ -23,7 +25,7 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
 
   useEffect(() => {
     let activo = true;
-    getReportes({ limite, incluirArchivados })
+    getReportes({ limite, incluirArchivados, soloMios })
       .then((data) => {
         if (!activo) return;
         setReportes(data);
@@ -34,9 +36,13 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
     return () => {
       activo = false;
     };
-  }, [limite, incluirArchivados]);
+  }, [limite, incluirArchivados, soloMios]);
 
   useWebSocketEvent("reporte_ciudadano", (payload) => {
+    // "Mis reportes" (soloMios) no debe inflarse con reportes ajenos que
+    // lleguen en vivo -- el WS transmite a todos por igual, sin filtrar por
+    // usuario_id (ver POST /api/reportes-ciudadanos en el backend).
+    if (soloMios && payload.usuario_id !== usuario?.id) return;
     setReportes((prev) => [payload, ...prev]);
   });
 
@@ -111,7 +117,7 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
     setCargandoMas(true);
     try {
       const ultimo = reportes[reportes.length - 1];
-      const pagina = await getReportes({ limite, antes: ultimo.creado_en, incluirArchivados });
+      const pagina = await getReportes({ limite, antes: ultimo.creado_en, incluirArchivados, soloMios });
       setReportes((prev) => [...prev, ...pagina]);
       setHayMas(pagina.length === limite);
       setError(null);
@@ -120,7 +126,7 @@ export function useReportes(limite = 30, { incluirArchivados = false } = {}) {
     } finally {
       setCargandoMas(false);
     }
-  }, [cargandoMas, hayMas, reportes, limite, incluirArchivados]);
+  }, [cargandoMas, hayMas, reportes, limite, incluirArchivados, soloMios]);
 
   return {
     reportes,

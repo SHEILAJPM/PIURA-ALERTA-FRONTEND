@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
+import { obtenerTokenGuardado } from "./AuthContext";
 
 const WebSocketContext = createContext(null);
+const EVENTO_SESION_CAMBIO = "piura-alerta:sesion-cambio";
 const WS_URL = import.meta.env.VITE_WS_URL ?? "ws://localhost:4000";
 const RECONEXION_MAX_MS = 15000;
 
@@ -14,6 +16,17 @@ export function WebSocketProvider({ children }) {
     let timeoutId;
     let cerrado = false;
 
+    // Le dice al servidor con qué rol tratar este socket (ver
+    // transmitirRestringido en websocket.js) -- sin esto, un admin conectado
+    // desde antes de iniciar sesión se quedaría tratado como anónimo hasta
+    // recargar la página. Se manda al abrir la conexión y cada vez que la
+    // sesión cambia (login/logout/otra cuenta), no solo una vez.
+    function autenticar() {
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ tipo: "autenticar", payload: { token: obtenerTokenGuardado() } }));
+      }
+    }
+
     function conectar() {
       setStatus("connecting");
       socket = new WebSocket(WS_URL);
@@ -21,6 +34,7 @@ export function WebSocketProvider({ children }) {
       socket.onopen = () => {
         reintentoMs = 1000;
         setStatus("open");
+        autenticar();
       };
 
       socket.onmessage = (event) => {
@@ -44,9 +58,11 @@ export function WebSocketProvider({ children }) {
     }
 
     conectar();
+    window.addEventListener(EVENTO_SESION_CAMBIO, autenticar);
     return () => {
       cerrado = true;
       clearTimeout(timeoutId);
+      window.removeEventListener(EVENTO_SESION_CAMBIO, autenticar);
       socket?.close();
     };
   }, []);

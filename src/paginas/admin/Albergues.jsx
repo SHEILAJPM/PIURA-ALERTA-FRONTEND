@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useAlbergues } from "../../ganchos/useAlbergues";
 import { actualizarOcupacionAlbergue, crearAlbergue, eliminarAlbergue } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
+import FormularioCreacion from "../../componentes/admin/FormularioCreacion";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import ConfirmDialog from "../../componentes/ConfirmDialog";
-import Icon from "../../componentes/Icon";
 
 const CAMPOS_INICIALES = { nombre: "", direccion: "", capacidad: "", lon: "", lat: "" };
 
@@ -23,194 +23,139 @@ const inputStyle = {
   color: "var(--color-text)",
 };
 
+function validarAlbergue(campos) {
+  const datos = {
+    nombre: campos.nombre.trim(),
+    direccion: campos.direccion.trim() || undefined,
+    capacidad: Number(campos.capacidad),
+    lon: Number(campos.lon),
+    lat: Number(campos.lat),
+  };
+  if (!datos.nombre || !Number.isFinite(datos.capacidad) || datos.capacidad <= 0) {
+    return { error: "Completa nombre y capacidad (mayor a 0)" };
+  }
+  if (!Number.isFinite(datos.lon) || !Number.isFinite(datos.lat)) {
+    return { error: "Completa latitud y longitud" };
+  }
+  return { datos };
+}
+
 function NuevoAlbergue({ onCrear }) {
-  const [abierto, setAbierto] = useState(false);
-  const [campos, setCampos] = useState(CAMPOS_INICIALES);
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState(null);
-
-  function actualizar(campo) {
-    return (e) => setCampos((prev) => ({ ...prev, [campo]: e.target.value }));
-  }
-
-  async function manejarSubmit(e) {
-    e.preventDefault();
-    const datos = {
-      nombre: campos.nombre.trim(),
-      direccion: campos.direccion.trim() || undefined,
-      capacidad: Number(campos.capacidad),
-      lon: Number(campos.lon),
-      lat: Number(campos.lat),
-    };
-    if (!datos.nombre || !Number.isFinite(datos.capacidad) || datos.capacidad <= 0) {
-      setError("Completa nombre y capacidad (mayor a 0)");
-      return;
-    }
-    if (!Number.isFinite(datos.lon) || !Number.isFinite(datos.lat)) {
-      setError("Completa latitud y longitud");
-      return;
-    }
-    setEnviando(true);
-    setError(null);
-    try {
-      await onCrear(datos);
-      setCampos(CAMPOS_INICIALES);
-      setAbierto(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  if (!abierto) {
-    return (
-      <button
-        type="button"
-        onClick={() => setAbierto(true)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg text-white"
-        style={{ backgroundColor: "var(--color-primary)" }}
-      >
-        <Icon name="bi-plus-lg" aria-hidden="true" /> Agregar albergue
-      </button>
-    );
-  }
-
   return (
-    <form
-      onSubmit={manejarSubmit}
-      className="rounded-2xl border p-5 mb-6"
-      style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+    <FormularioCreacion
+      camposIniciales={CAMPOS_INICIALES}
+      validar={validarAlbergue}
+      onCrear={onCrear}
+      textoBoton="Agregar albergue"
+      textoGuardar="Guardar albergue"
+      textoGuardando="Guardando..."
     >
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="albergue-nombre"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Nombre
-          </label>
-          <input
-            id="albergue-nombre"
-            type="text"
-            placeholder="I.E. San Miguel"
-            value={campos.nombre}
-            onChange={actualizar("nombre")}
-            maxLength={150}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="albergue-direccion"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Dirección
-          </label>
-          <input
-            id="albergue-direccion"
-            type="text"
-            placeholder="Jr. Ayacucho 400"
-            value={campos.direccion}
-            onChange={actualizar("direccion")}
-            maxLength={200}
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="albergue-capacidad"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Capacidad
-          </label>
-          <input
-            id="albergue-capacidad"
-            type="number"
-            min="1"
-            placeholder="200"
-            value={campos.capacidad}
-            onChange={actualizar("capacidad")}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
+      {({ valores, actualizar }) => (
+        <>
           <div>
             <label
-              htmlFor="albergue-lat"
+              htmlFor="albergue-nombre"
               className="text-xs font-semibold"
               style={{ color: "var(--color-text-muted)" }}
             >
-              Latitud
+              Nombre
             </label>
             <input
-              id="albergue-lat"
-              type="number"
-              step="any"
-              placeholder="-5.1945"
-              value={campos.lat}
-              onChange={actualizar("lat")}
+              id="albergue-nombre"
+              type="text"
+              placeholder="I.E. San Miguel"
+              value={valores.nombre}
+              onChange={actualizar("nombre")}
+              maxLength={150}
               required
-              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
               style={inputStyle}
             />
           </div>
           <div>
             <label
-              htmlFor="albergue-lon"
+              htmlFor="albergue-direccion"
               className="text-xs font-semibold"
               style={{ color: "var(--color-text-muted)" }}
             >
-              Longitud
+              Dirección
             </label>
             <input
-              id="albergue-lon"
+              id="albergue-direccion"
+              type="text"
+              placeholder="Jr. Ayacucho 400"
+              value={valores.direccion}
+              onChange={actualizar("direccion")}
+              maxLength={200}
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="albergue-capacidad"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Capacidad
+            </label>
+            <input
+              id="albergue-capacidad"
               type="number"
-              step="any"
-              placeholder="-80.6328"
-              value={campos.lon}
-              onChange={actualizar("lon")}
+              min="1"
+              placeholder="200"
+              value={valores.capacidad}
+              onChange={actualizar("capacidad")}
               required
               className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
               style={inputStyle}
             />
           </div>
-        </div>
-      </div>
-
-      {error && (
-        <p className="text-sm mt-3" style={{ color: "var(--color-alerta)" }}>
-          {error}
-        </p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label
+                htmlFor="albergue-lat"
+                className="text-xs font-semibold"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Latitud
+              </label>
+              <input
+                id="albergue-lat"
+                type="number"
+                step="any"
+                placeholder="-5.1945"
+                value={valores.lat}
+                onChange={actualizar("lat")}
+                required
+                className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+                style={inputStyle}
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="albergue-lon"
+                className="text-xs font-semibold"
+                style={{ color: "var(--color-text-muted)" }}
+              >
+                Longitud
+              </label>
+              <input
+                id="albergue-lon"
+                type="number"
+                step="any"
+                placeholder="-80.6328"
+                value={valores.lon}
+                onChange={actualizar("lon")}
+                required
+                className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+                style={inputStyle}
+              />
+            </div>
+          </div>
+        </>
       )}
-
-      <div className="flex gap-2 mt-4">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-50"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          {enviando ? "Guardando..." : "Guardar albergue"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setAbierto(false)}
-          className="text-sm font-medium px-4 py-2"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+    </FormularioCreacion>
   );
 }
 

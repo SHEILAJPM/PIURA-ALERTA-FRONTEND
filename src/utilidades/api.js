@@ -76,12 +76,15 @@ export function getZonasRiesgo() {
   return apiFetch("/api/zonas-riesgo");
 }
 
-export function getReportes({ limite = 30, conFoto = false, antes, incluirArchivados = false } = {}) {
+export function getReportes({ limite = 30, conFoto = false, antes, incluirArchivados = false, soloMios = false } = {}) {
   const params = new URLSearchParams({ limite: String(limite), conFoto: String(conFoto) });
   if (antes) params.set("antes", antes);
   // Solo tiene efecto para un administrador (ver GET /api/reportes-ciudadanos);
   // en cualquier otro caso el backend lo ignora y sigue sin mostrar archivados.
   if (incluirArchivados) params.set("incluirArchivados", "true");
+  // Solo tiene efecto con sesión (ver MisReportes.jsx); sin sesión el backend
+  // lo ignora y devuelve el feed público normal.
+  if (soloMios) params.set("soloMios", "true");
   return apiFetch(`/api/reportes-ciudadanos?${params}`);
 }
 
@@ -122,11 +125,32 @@ export function registrarUsuario({
   });
 }
 
+// Para roles operativos, el backend no devuelve token todavía: devuelve
+// { requiere_2fa: true, referencia } (ver verificarCodigo2FA) — un ciudadano
+// normal recibe { token, usuario } de una, como antes.
 export function iniciarSesion({ correo, password }) {
   return apiFetch("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ correo, password }),
   });
+}
+
+export function verificarCodigo2FA({ referencia, codigo }) {
+  return apiFetch("/api/auth/verificar-2fa", {
+    method: "POST",
+    body: JSON.stringify({ referencia, codigo }),
+  });
+}
+
+export function verificarCorreo(token) {
+  return apiFetch("/api/auth/verificar-correo", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export function reenviarVerificacionCorreo() {
+  return apiFetch("/api/auth/reenviar-verificacion", { method: "POST" });
 }
 
 export function obtenerPerfil() {
@@ -318,5 +342,16 @@ export function actualizarEstadoSOS(alertaId, estado) {
   return apiFetch(`/api/sos/${alertaId}/estado`, {
     method: "PATCH",
     body: JSON.stringify({ estado }),
+  });
+}
+
+export function getConfiguracion() {
+  return apiFetch("/api/configuracion");
+}
+
+export function actualizarConfiguracion(cambios) {
+  return apiFetch("/api/configuracion", {
+    method: "PATCH",
+    body: JSON.stringify(cambios),
   });
 }

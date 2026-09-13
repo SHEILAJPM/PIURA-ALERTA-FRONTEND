@@ -11,11 +11,13 @@ const inputStyle = {
   color: "var(--color-text)",
 };
 
-function CampoLogin({ onExito, onOlvideContrasena }) {
-  const { login } = useAuth();
+// Segundo paso del login para roles operativos (ver ROLES_CON_2FA en
+// src/rutas/auth.routes.js): el código llega por correo, referencia solo
+// identifica qué código, no lo reemplaza.
+function CampoCodigo2FA({ referencia, onExito }) {
+  const { confirmar2FA } = useAuth();
   const navigate = useNavigate();
-  const [correo, setCorreo] = useState("");
-  const [password, setPassword] = useState("");
+  const [codigo, setCodigo] = useState("");
   const [error, setError] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -24,10 +26,73 @@ function CampoLogin({ onExito, onOlvideContrasena }) {
     setEnviando(true);
     setError(null);
     try {
-      const usuario = await login(correo, password);
+      await confirmar2FA(referencia, codigo);
+      navigate("/admin");
+      onExito?.();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <form onSubmit={manejarSubmit} className="space-y-3">
+      <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
+        Te mandamos un código de 6 dígitos por correo. Escríbelo acá para terminar de ingresar.
+      </p>
+      <input
+        type="text"
+        inputMode="numeric"
+        placeholder="000000"
+        value={codigo}
+        onChange={(e) => setCodigo(e.target.value.replace(/\D/g, "").slice(0, 6))}
+        required
+        pattern="\d{6}"
+        maxLength={6}
+        className="w-full rounded-lg border px-3 py-2 text-sm text-center tracking-[0.5em] font-mono-data"
+        style={inputStyle}
+      />
+      {error && (
+        <p className="text-sm" style={{ color: "var(--color-alerta)" }}>
+          {error}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={enviando || codigo.length !== 6}
+        className="w-full rounded-lg py-2.5 font-semibold text-white disabled:opacity-60"
+        style={{ backgroundColor: "var(--color-primary)" }}
+      >
+        {enviando ? "Verificando..." : "Verificar código"}
+      </button>
+    </form>
+  );
+}
+
+function CampoLogin({ onExito, onOlvideContrasena, onPaso2FA }) {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [correo, setCorreo] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+  const [referencia2FA, setReferencia2FA] = useState(null);
+
+  async function manejarSubmit(e) {
+    e.preventDefault();
+    setEnviando(true);
+    setError(null);
+    try {
+      const resultado = await login(correo, password);
+      if (resultado?.requiere_2fa) {
+        setReferencia2FA(resultado.referencia);
+        onPaso2FA?.(true);
+        return;
+      }
       // Cuentas operativas (admin/operario/defensa civil) van directo al
       // panel: no tiene sentido dejarlas en la pantalla pública tras el login.
-      if (usuario && ROLES_PANEL_ADMIN.includes(usuario.rol)) {
+      if (resultado && ROLES_PANEL_ADMIN.includes(resultado.rol)) {
         navigate("/admin");
       }
       onExito?.();
@@ -36,6 +101,10 @@ function CampoLogin({ onExito, onOlvideContrasena }) {
     } finally {
       setEnviando(false);
     }
+  }
+
+  if (referencia2FA) {
+    return <CampoCodigo2FA referencia={referencia2FA} onExito={onExito} />;
   }
 
   return (
@@ -322,6 +391,9 @@ function DialogoAuth({ modal, cerrarModal, abrirModal, sesionExpirada }) {
   const contenedorRef = useModalA11y(cerrarModal);
   const esLogin = modal === "login";
   const esOlvidePassword = modal === "olvide-password";
+  // En el paso de código (ver CampoCodigo2FA), no tiene sentido ofrecer
+  // "Regístrate": abandonaría un login a medias por una cuenta nueva.
+  const [enPaso2FA, setEnPaso2FA] = useState(false);
 
   return (
     <div
@@ -366,12 +438,16 @@ function DialogoAuth({ modal, cerrarModal, abrirModal, sesionExpirada }) {
         {esOlvidePassword ? (
           <CampoOlvidePassword onVolver={() => abrirModal("login")} />
         ) : esLogin ? (
-          <CampoLogin onExito={cerrarModal} onOlvideContrasena={() => abrirModal("olvide-password")} />
+          <CampoLogin
+            onExito={cerrarModal}
+            onOlvideContrasena={() => abrirModal("olvide-password")}
+            onPaso2FA={setEnPaso2FA}
+          />
         ) : (
           <CampoRegistro onExito={cerrarModal} />
         )}
 
-        {!esOlvidePassword && (
+        {!esOlvidePassword && !enPaso2FA && (
           <p className="text-sm text-center mt-4" style={{ color: "var(--color-text-muted)" }}>
             {esLogin ? "¿No tienes cuenta? " : "¿Ya tienes cuenta? "}
             <button

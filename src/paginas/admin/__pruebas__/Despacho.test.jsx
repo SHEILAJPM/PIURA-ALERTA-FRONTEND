@@ -14,7 +14,10 @@ vi.mock("../../../utilidades/api", () => ({
 }));
 // useAlertasSOS se suscribe a eventos en vivo (ver AlertasSOS en Despacho.jsx);
 // mockeado para no depender de un WebSocketProvider real en la prueba.
-vi.mock("../../../contexto/WebSocketContext", () => ({ useWebSocketEvent: vi.fn() }));
+vi.mock("../../../contexto/WebSocketContext", () => ({
+  useWebSocketEvent: vi.fn(),
+  useWebSocketStatus: vi.fn(() => "open"),
+}));
 
 function setup({ sensores = [], alertasSOS = [] } = {}) {
   useUltimaLectura.mockReturnValue({
