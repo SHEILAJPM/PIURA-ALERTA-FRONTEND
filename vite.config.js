@@ -66,7 +66,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     globals: true,
-    setupFiles: "./src/test/setup.js",
+    setupFiles: "./src/pruebas/setup.js",
     // e2e/ son specs de Playwright (npm run test:e2e), no de Vitest — sin
     // este exclude, Vitest los recoge también por el patrón *.spec.js y
     // falla al intentar correr test() de Playwright en su propio runner.
