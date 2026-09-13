@@ -301,3 +301,22 @@ export function getChequeosSeguridad() {
 export function getImpacto() {
   return apiFetch("/api/impacto");
 }
+
+export function enviarSOS({ nombre_contacto, telefono_contacto, lon, lat }) {
+  return apiFetch("/api/sos", {
+    method: "POST",
+    body: JSON.stringify({ nombre_contacto, telefono_contacto, lon, lat }),
+  });
+}
+
+export function getAlertasSOS({ incluirAtendidas = false } = {}) {
+  const params = new URLSearchParams({ incluirAtendidas: String(incluirAtendidas) });
+  return apiFetch(`/api/sos?${params}`);
+}
+
+export function actualizarEstadoSOS(alertaId, estado) {
+  return apiFetch(`/api/sos/${alertaId}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify({ estado }),
+  });
+}
