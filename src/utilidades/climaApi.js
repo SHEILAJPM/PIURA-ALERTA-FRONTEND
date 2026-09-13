@@ -16,7 +16,12 @@ export async function obtenerPronosticoLluvia() {
     longitude: LON_PIURA,
     hourly: "precipitation_probability,precipitation",
     timezone: "America/Lima",
-    forecast_days: "1",
+    // 2 días, no 1: con solo el día de hoy, entrada la noche ya no queda
+    // ninguna hora futura en la respuesta -- el código caía a mostrar las
+    // primeras horas del día (ya pasadas) como si fueran el pronóstico de
+    // "las próximas 6 horas". Con el día siguiente ya incluido, siempre hay
+    // horas futuras para encontrar.
+    forecast_days: "2",
   });
 
   const res = await fetch(`${BASE_URL}?${params}`);
@@ -26,7 +31,11 @@ export async function obtenerPronosticoLluvia() {
   const { time, precipitation_probability: probabilidad, precipitation: mm } = data.hourly;
   const ahora = Date.now();
   const indiceActual = time.findIndex((t) => new Date(t).getTime() >= ahora);
-  const inicio = indiceActual === -1 ? 0 : indiceActual;
+  // Si de verdad no hay ninguna hora futura en la respuesta (no debería
+  // pasar con forecast_days=2, pero por si acaso), cae a un slice vacío en
+  // vez de al principio del arreglo -- mostrar "sin datos" es honesto, mostrar
+  // lluvia de ayer/madrugada como si fuera el pronóstico no lo es.
+  const inicio = indiceActual === -1 ? time.length : indiceActual;
   const probabilidadVentana = probabilidad.slice(inicio, inicio + HORAS_A_MIRAR);
   const mmVentana = mm.slice(inicio, inicio + HORAS_A_MIRAR);
 

@@ -6,7 +6,6 @@ import { useEstadoSensores } from "../ganchos/useEstadoSensores";
 import Icon from "./Icon";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
-const SIN_LECTURAS = "Sin lecturas todavía para este sensor";
 
 function formatearHora(iso) {
   if (!iso) return "—";
@@ -14,7 +13,7 @@ function formatearHora(iso) {
 }
 
 function RiverStatus({ sensorCodigo = SENSOR_POR_DEFECTO, nombreSensor }) {
-  const { lectura, loading, error, recargar } = useUltimaLectura(sensorCodigo);
+  const { lectura, loading, error, sinLecturas, recargar } = useUltimaLectura(sensorCodigo);
   const { data: estadoSensores } = useEstadoSensores();
   const estadoSensor = estadoSensores?.find((s) => s.codigo === sensorCodigo);
   const sensorSinSenal = estadoSensor && !estadoSensor.en_linea;
@@ -35,7 +34,7 @@ function RiverStatus({ sensorCodigo = SENSOR_POR_DEFECTO, nombreSensor }) {
   // Un sensor recién agregado desde el panel admin todavía no tiene
   // lecturas: es un estado normal, no una falla de conexión, así que no
   // debe mostrar el mismo aviso rojo de "no se pudo conectar".
-  if (error === SIN_LECTURAS) {
+  if (sinLecturas) {
     return (
       <section
         className="rounded-3xl border p-6 text-center"
