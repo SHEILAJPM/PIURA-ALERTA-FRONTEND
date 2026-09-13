@@ -4,6 +4,7 @@ import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import { ROLES_ADMINISTRADOR } from "../../constantes/roles";
+import { formatearFechaHora as formatearFecha } from "../../utilidades/fecha";
 
 const ACCION_LABEL = {
   cambiar_rol: "Cambio de rol",
@@ -12,15 +13,6 @@ const ACCION_LABEL = {
   calibrar_sensor: "Calibración de sensor",
   difusion_manual: "Difusión manual",
 };
-
-function formatearFecha(iso) {
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function Auditoria() {
   const { data: acciones, loading, error, recargar } = useAuditoria(100);

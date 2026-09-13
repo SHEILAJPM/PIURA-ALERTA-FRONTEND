@@ -11,11 +11,7 @@ import Skeleton from "./Skeleton";
 import ErrorBanner from "./ErrorBanner";
 import { useTheme } from "../contexto/ThemeContext";
 import Icon, { iconoHTML } from "./Icon";
-
-function formatearHora(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-}
+import { formatearHora } from "../utilidades/fecha";
 
 const CENTRO_PIURA = [-5.1945, -80.6328];
 
@@ -45,27 +41,42 @@ const COLOR_RIESGO = {
   alto: "#c1272d",
 };
 
+// Los marcadores son un puñado de combinaciones fijas (tipo de nodo x
+// estado), pero se recrean en cada render de cada <Marker> -- un Map a nivel
+// de módulo evita fabricar el mismo L.divIcon una y otra vez (sensores en
+// vivo re-renderizan seguido por WebSocket).
+const cacheIconos = new Map();
+
+function iconoConCache(clave, fabricar) {
+  if (!cacheIconos.has(clave)) cacheIconos.set(clave, fabricar());
+  return cacheIconos.get(clave);
+}
+
 function crearIconoBootstrap(nombreIcono, color) {
-  return L.divIcon({
-    html: `<div style="background:${color};width:34px;height:34px;border-radius:9999px;display:flex;align-items:center;justify-content:center;color:white;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2.5px solid white;">${iconoHTML(nombreIcono)}</div>`,
-    className: "",
-    iconSize: [34, 34],
-    iconAnchor: [17, 17],
-    popupAnchor: [0, -17],
-  });
+  return iconoConCache(`bootstrap:${nombreIcono}:${color}`, () =>
+    L.divIcon({
+      html: `<div style="background:${color};width:34px;height:34px;border-radius:9999px;display:flex;align-items:center;justify-content:center;color:white;line-height:1;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2.5px solid white;">${iconoHTML(nombreIcono)}</div>`,
+      className: "",
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+      popupAnchor: [0, -17],
+    })
+  );
 }
 
 // Para hospitales/comisarías/bomberos: en vez de arriesgar un ícono de
 // Bootstrap que no exista o no encaje (ver crearIconoBootstrap), una letra
 // simple ("H"/"P"/"B") es igual de clara y no depende de adivinar nombres.
 function crearIconoTexto(letra, color) {
-  return L.divIcon({
-    html: `<div style="background:${color};width:28px;height:28px;border-radius:9999px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid white;">${letra}</div>`,
-    className: "",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-    popupAnchor: [0, -14],
-  });
+  return iconoConCache(`texto:${letra}:${color}`, () =>
+    L.divIcon({
+      html: `<div style="background:${color};width:28px;height:28px;border-radius:9999px;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,0.35);border:2px solid white;">${letra}</div>`,
+      className: "",
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14],
+    })
+  );
 }
 
 // Abre una ruta a pie desde la ubicación del usuario (si la comparte) hasta

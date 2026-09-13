@@ -12,6 +12,7 @@ import { useSensores } from "../ganchos/useSensores";
 import { useHistorico } from "../ganchos/useHistorico";
 import { usePronosticoLluvia } from "../ganchos/usePronosticoLluvia";
 import { recommendations } from "../datos/content";
+import { formatearHora } from "../utilidades/fecha";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
 const CLAVE_SENSOR_GUARDADO = "piura-alerta-sensor";
@@ -23,11 +24,6 @@ const selectStyle = {
 };
 
 const ICONOS_RECOMENDACION = ["bi-broadcast", "bi-water", "bi-map", "bi-megaphone"];
-
-function formatearHora(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-}
 
 function calcularTendencia(prediccion) {
   if (!prediccion) return "—";

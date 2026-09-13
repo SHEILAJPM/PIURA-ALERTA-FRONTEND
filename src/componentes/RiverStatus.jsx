@@ -4,13 +4,9 @@ import ErrorBanner from "./ErrorBanner";
 import { useUltimaLectura } from "../ganchos/useUltimaLectura";
 import { useEstadoSensores } from "../ganchos/useEstadoSensores";
 import Icon from "./Icon";
+import { formatearHora } from "../utilidades/fecha";
 
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
-
-function formatearHora(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit" });
-}
 
 function RiverStatus({ sensorCodigo = SENSOR_POR_DEFECTO, nombreSensor }) {
   const { lectura, loading, error, sinLecturas, recargar } = useUltimaLectura(sensorCodigo);

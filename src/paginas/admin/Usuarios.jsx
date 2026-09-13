@@ -6,6 +6,7 @@ import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import { ROLES_ADMINISTRADOR } from "../../constantes/roles";
+import { formatearFecha } from "../../utilidades/fecha";
 
 const ROLES = [
   { valor: "ciudadano", etiqueta: "Ciudadano" },
@@ -13,11 +14,6 @@ const ROLES = [
   { valor: "defensa_civil", etiqueta: "Defensa Civil / COER" },
   { valor: "administrador", etiqueta: "Administrador" },
 ];
-
-function formatearFecha(iso) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleDateString("es-PE", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 // Memoizado: con muchos usuarios, cambiar el rol de uno solo no debería
 // re-renderizar (ni volver a montar el <select> de) todas las demás filas.

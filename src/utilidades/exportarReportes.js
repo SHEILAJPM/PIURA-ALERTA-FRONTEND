@@ -1,12 +1,10 @@
+import { formatearFechaHoraCorta } from "./fecha";
+
 const ESTADO_TEXTO = {
   pendiente: "Pendiente de revisión",
   verificado: "Verificado",
   descartado: "Archivado",
 };
-
-function formatearFechaCompleta(iso) {
-  return new Date(iso).toLocaleString("es-PE", { dateStyle: "medium", timeStyle: "short" });
-}
 
 function escapeHtml(texto) {
   const mapa = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
@@ -19,7 +17,7 @@ function csvEscape(valor) {
 }
 
 const COLUMNAS_CSV = [
-  { titulo: "Fecha", valor: (r) => formatearFechaCompleta(r.creado_en) },
+  { titulo: "Fecha", valor: (r) => formatearFechaHoraCorta(r.creado_en) },
   { titulo: "Autor", valor: (r) => r.usuario_nombre },
   { titulo: "Estado", valor: (r) => ESTADO_TEXTO[r.estado] ?? r.estado },
   { titulo: "Descripción", valor: (r) => r.descripcion },
@@ -62,7 +60,7 @@ export function exportarReportesPDF(reportes, titulo = "Reportes ciudadanos — 
     .map(
       (r) => `
         <tr>
-          <td>${formatearFechaCompleta(r.creado_en)}</td>
+          <td>${formatearFechaHoraCorta(r.creado_en)}</td>
           <td>${escapeHtml(r.usuario_nombre)}</td>
           <td>${ESTADO_TEXTO[r.estado] ?? r.estado}</td>
           <td>${escapeHtml(r.descripcion)}</td>
@@ -88,7 +86,7 @@ export function exportarReportesPDF(reportes, titulo = "Reportes ciudadanos — 
 </head>
 <body>
 <h1>${escapeHtml(titulo)}</h1>
-<p class="meta">Generado el ${formatearFechaCompleta(new Date().toISOString())} — ${reportes.length} reportes</p>
+<p class="meta">Generado el ${formatearFechaHoraCorta(new Date().toISOString())} — ${reportes.length} reportes</p>
 <table>
 <thead><tr><th>Fecha</th><th>Autor</th><th>Estado</th><th>Descripción</th><th>Likes</th></tr></thead>
 <tbody>${filas}</tbody>

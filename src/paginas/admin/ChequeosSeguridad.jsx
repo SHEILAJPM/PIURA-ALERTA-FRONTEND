@@ -4,16 +4,7 @@ import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import { ROLES_DEFENSA_CIVIL } from "../../constantes/roles";
-
-function formatearFecha(iso) {
-  if (!iso) return null;
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { formatearFechaHora as formatearFecha } from "../../utilidades/fecha";
 
 // "Hace cuánto" en vez de solo la fecha: durante una emergencia, lo que
 // importa a simple vista es qué tan viejo es el último aviso de cada

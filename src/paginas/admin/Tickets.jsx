@@ -5,6 +5,7 @@ import { crearTicket, actualizarEstadoTicket } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
+import { formatearFechaHora as formatearFecha } from "../../utilidades/fecha";
 
 const ESTADO_LABEL = {
   abierto: { texto: "Abierto", color: "var(--color-alerta)", bg: "var(--color-alerta-soft)" },
@@ -21,14 +22,6 @@ const PRIORIDAD_LABEL = {
   baja: { texto: "Baja", color: "var(--color-text-muted)" },
 };
 
-function formatearFecha(iso) {
-  return new Date(iso).toLocaleDateString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function NuevoTicket({ sensores, onCrear }) {
   const [abierto, setAbierto] = useState(false);
