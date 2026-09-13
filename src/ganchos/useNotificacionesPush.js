@@ -12,6 +12,23 @@ function urlBase64ToUint8Array(base64String) {
 
 const SOPORTADO = typeof navigator !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
 
+// Best-effort: sin geolocalización disponible, sin permiso, o si tarda
+// demasiado, se resuelve a null y la suscripción sigue sin ubicación (recibe
+// todas las alertas sin filtrar por cercanía, ver notificarCambioEstadoPush
+// en el backend) — nunca bloquea la activación de las notificaciones por esto.
+function obtenerUbicacion() {
+  if (typeof navigator === "undefined" || !("geolocation" in navigator)) {
+    return Promise.resolve(null);
+  }
+  return new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lon: pos.coords.longitude, lat: pos.coords.latitude }),
+      () => resolve(null),
+      { timeout: 5000 }
+    );
+  });
+}
+
 export function useNotificacionesPush() {
   const [suscrito, setSuscrito] = useState(false);
   const [cargando, setCargando] = useState(true);
@@ -55,7 +72,8 @@ export function useNotificacionesPush() {
           applicationServerKey: urlBase64ToUint8Array(publicKey),
         }));
 
-      await suscribirPush(suscripcion.toJSON());
+      const ubicacion = await obtenerUbicacion();
+      await suscribirPush({ ...suscripcion.toJSON(), ...(ubicacion ?? {}) });
       setSuscrito(true);
     } catch (err) {
       setError(err.message);
