@@ -15,6 +15,36 @@ const TIPOS = {
   fire_station: { etiqueta: "Bomberos", letra: "B", color: "#e8580c" },
 };
 
+// Overpass es un servicio público y gratuito compartido por muchísimas apps:
+// sin cachear, cada vez que alguien abre el mapa (o navega entre páginas
+// dentro de la misma pestaña) se manda una consulta nueva, y basta con unas
+// pocas visitas seguidas para chocar con su límite de uso (429). Los
+// hospitales/comisarías/bomberos no cambian de un día a otro, así que 24h de
+// caché no le cuesta nada a la app y libera bastante presión sobre el
+// servicio. sessionStorage (no localStorage) a propósito: se limpia sola al
+// cerrar la pestaña, así una app de emergencias nunca muestra ubicaciones de
+// hace semanas sin que quede ningún rastro que limpiar a mano.
+const CLAVE_CACHE = "piura-alerta-ayuda-cercana";
+const CACHE_VIGENTE_MS = 24 * 60 * 60 * 1000;
+
+function leerCache() {
+  try {
+    const guardado = sessionStorage.getItem(CLAVE_CACHE);
+    return guardado ? JSON.parse(guardado) : null;
+  } catch {
+    return null;
+  }
+}
+
+function guardarCache(puntos) {
+  try {
+    sessionStorage.setItem(CLAVE_CACHE, JSON.stringify({ puntos, guardadoEn: Date.now() }));
+  } catch {
+    // sessionStorage llena o no disponible (modo privado, etc.): no es
+    // crítico, la próxima llamada simplemente vuelve a consultar Overpass.
+  }
+}
+
 function construirConsulta() {
   const amenities = Object.keys(TIPOS);
   const clausulas = amenities
@@ -23,16 +53,8 @@ function construirConsulta() {
   return `[out:json][timeout:15];\n(\n${clausulas}\n);\nout center;`;
 }
 
-export async function obtenerPuntosAyuda() {
-  const res = await fetch(OVERPASS_URL, {
-    method: "POST",
-    body: `data=${encodeURIComponent(construirConsulta())}`,
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-  });
-  if (!res.ok) throw new Error(`Overpass respondió ${res.status}`);
-  const data = await res.json();
-
-  return data.elements
+function normalizarElementos(elements) {
+  return elements
     .map((el) => {
       const amenity = el.tags?.amenity;
       const info = TIPOS[amenity];
@@ -54,4 +76,32 @@ export async function obtenerPuntosAyuda() {
       };
     })
     .filter(Boolean);
+}
+
+export async function obtenerPuntosAyuda() {
+  const cache = leerCache();
+  if (cache && Date.now() - cache.guardadoEn < CACHE_VIGENTE_MS) {
+    return cache.puntos;
+  }
+
+  try {
+    const res = await fetch(OVERPASS_URL, {
+      method: "POST",
+      body: `data=${encodeURIComponent(construirConsulta())}`,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    });
+    if (!res.ok) throw new Error(`Overpass respondió ${res.status}`);
+    const data = await res.json();
+
+    const puntos = normalizarElementos(data.elements);
+    guardarCache(puntos);
+    return puntos;
+  } catch (err) {
+    // Un 429 (límite de uso) o una falla de red no debería dejar el mapa sin
+    // ningún hospital/comisaría/bombero si ya se había conseguido la lista
+    // antes en esta pestaña -- mostrar datos con hasta 24h de antigüedad es
+    // mejor que no mostrar nada.
+    if (cache) return cache.puntos;
+    throw err;
+  }
 }

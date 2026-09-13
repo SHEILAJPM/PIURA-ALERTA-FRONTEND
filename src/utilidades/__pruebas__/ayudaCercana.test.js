@@ -12,6 +12,7 @@ function mockFetchOnce(status, body) {
 describe("obtenerPuntosAyuda", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
   });
 
   it("manda la consulta a Overpass por POST con el body codificado", async () => {
@@ -63,8 +64,37 @@ describe("obtenerPuntosAyuda", () => {
     expect(puntos).toEqual([]);
   });
 
-  it("si Overpass responde con error HTTP, lanza una excepción", async () => {
+  it("si Overpass responde con error HTTP y no hay caché, lanza una excepción", async () => {
     mockFetchOnce(503, {});
     await expect(obtenerPuntosAyuda()).rejects.toThrow("Overpass respondió 503");
+  });
+
+  it("una segunda llamada usa la caché en vez de volver a consultar Overpass", async () => {
+    mockFetchOnce(200, {
+      elements: [{ type: "node", id: 1, lat: -5.19, lon: -80.63, tags: { amenity: "hospital" } }],
+    });
+    const primera = await obtenerPuntosAyuda();
+    const segunda = await obtenerPuntosAyuda();
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(segunda).toEqual(primera);
+  });
+
+  it("si Overpass falla (ej. 429) pero ya había datos en caché, devuelve los datos viejos en vez de fallar", async () => {
+    mockFetchOnce(200, {
+      elements: [{ type: "node", id: 1, lat: -5.19, lon: -80.63, tags: { amenity: "hospital" } }],
+    });
+    const primera = await obtenerPuntosAyuda();
+
+    // Vence la caché a mano (sin esperar 24h de verdad) para forzar que la
+    // siguiente llamada intente consultar Overpass de nuevo.
+    const guardado = JSON.parse(sessionStorage.getItem("piura-alerta-ayuda-cercana"));
+    guardado.guardadoEn = Date.now() - 25 * 60 * 60 * 1000;
+    sessionStorage.setItem("piura-alerta-ayuda-cercana", JSON.stringify(guardado));
+
+    mockFetchOnce(429, {});
+    const segunda = await obtenerPuntosAyuda();
+
+    expect(segunda).toEqual(primera);
   });
 });
