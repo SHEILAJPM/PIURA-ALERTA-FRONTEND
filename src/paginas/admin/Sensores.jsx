@@ -2,9 +2,15 @@ import { useState } from "react";
 import { useSensores } from "../../ganchos/useSensores";
 import { crearSensor, actualizarActivoSensor } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
+import FormularioCreacion from "../../componentes/admin/FormularioCreacion";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
-import Icon from "../../componentes/Icon";
+
+const inputStyle = {
+  borderColor: "var(--color-border)",
+  backgroundColor: "var(--color-bg)",
+  color: "var(--color-text)",
+};
 
 const CAMPOS_INICIALES = {
   codigo: "",
@@ -21,222 +27,161 @@ function coordenadas(ubicacionGeoJSON) {
   return `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
 }
 
-function NuevoNodo({ onCrear }) {
-  const [abierto, setAbierto] = useState(false);
-  const [campos, setCampos] = useState(CAMPOS_INICIALES);
-  const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState(null);
-
-  function actualizar(campo) {
-    return (e) => setCampos((prev) => ({ ...prev, [campo]: e.target.value }));
-  }
-
-  async function manejarSubmit(e) {
-    e.preventDefault();
-    const datos = {
-      codigo: campos.codigo.trim(),
-      nombre: campos.nombre.trim(),
-      lon: Number(campos.lon),
-      lat: Number(campos.lat),
-      nivel_prealerta_cm: Number(campos.nivel_prealerta_cm),
-      nivel_alerta_roja_cm: Number(campos.nivel_alerta_roja_cm),
-    };
-    if (Object.values(datos).some((v) => v === "" || (typeof v === "number" && Number.isNaN(v)))) {
-      setError("Completa todos los campos");
-      return;
-    }
-    if (datos.nivel_alerta_roja_cm <= datos.nivel_prealerta_cm) {
-      setError("El umbral de alerta roja debe ser mayor que el de prealerta");
-      return;
-    }
-    setEnviando(true);
-    setError(null);
-    try {
-      await onCrear(datos);
-      setCampos(CAMPOS_INICIALES);
-      setAbierto(false);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setEnviando(false);
-    }
-  }
-
-  const inputStyle = {
-    borderColor: "var(--color-border)",
-    backgroundColor: "var(--color-bg)",
-    color: "var(--color-text)",
+function validarNodo(campos) {
+  const datos = {
+    codigo: campos.codigo.trim(),
+    nombre: campos.nombre.trim(),
+    lon: Number(campos.lon),
+    lat: Number(campos.lat),
+    nivel_prealerta_cm: Number(campos.nivel_prealerta_cm),
+    nivel_alerta_roja_cm: Number(campos.nivel_alerta_roja_cm),
   };
-
-  if (!abierto) {
-    return (
-      <button
-        type="button"
-        onClick={() => setAbierto(true)}
-        className="mb-6 flex items-center gap-2 text-sm font-semibold px-4 py-2.5 rounded-lg text-white"
-        style={{ backgroundColor: "var(--color-primary)" }}
-      >
-        <Icon name="bi-plus-lg" aria-hidden="true" /> Registrar nodo ESP32
-      </button>
-    );
+  if (Object.values(datos).some((v) => v === "" || (typeof v === "number" && Number.isNaN(v)))) {
+    return { error: "Completa todos los campos" };
   }
+  if (datos.nivel_alerta_roja_cm <= datos.nivel_prealerta_cm) {
+    return { error: "El umbral de alerta roja debe ser mayor que el de prealerta" };
+  }
+  return { datos };
+}
 
+function NuevoNodo({ onCrear }) {
   return (
-    <form
-      onSubmit={manejarSubmit}
-      className="rounded-2xl border p-5 mb-6"
-      style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+    <FormularioCreacion
+      camposIniciales={CAMPOS_INICIALES}
+      validar={validarNodo}
+      onCrear={onCrear}
+      textoBoton="Registrar nodo ESP32"
+      textoGuardar="Registrar nodo"
+      textoGuardando="Registrando..."
     >
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label
-            htmlFor="sensor-codigo"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Código del ESP32
-          </label>
-          <input
-            id="sensor-codigo"
-            type="text"
-            placeholder="RIO-PIURA-02"
-            value={campos.codigo}
-            onChange={actualizar("codigo")}
-            maxLength={50}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="sensor-nombre"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Nombre / ubicación
-          </label>
-          <input
-            id="sensor-nombre"
-            type="text"
-            placeholder="Puente Bolognesi"
-            value={campos.nombre}
-            onChange={actualizar("nombre")}
-            maxLength={150}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="sensor-lat"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Latitud
-          </label>
-          <input
-            id="sensor-lat"
-            type="number"
-            step="any"
-            placeholder="-5.1945"
-            value={campos.lat}
-            onChange={actualizar("lat")}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="sensor-lon"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-text-muted)" }}
-          >
-            Longitud
-          </label>
-          <input
-            id="sensor-lon"
-            type="number"
-            step="any"
-            placeholder="-80.6328"
-            value={campos.lon}
-            onChange={actualizar("lon")}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="sensor-prealerta"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-prealerta)" }}
-          >
-            Umbral prealerta (cm)
-          </label>
-          <input
-            id="sensor-prealerta"
-            type="number"
-            step="0.1"
-            min="0"
-            placeholder="10"
-            value={campos.nivel_prealerta_cm}
-            onChange={actualizar("nivel_prealerta_cm")}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-        <div>
-          <label
-            htmlFor="sensor-alerta-roja"
-            className="text-xs font-semibold"
-            style={{ color: "var(--color-alerta)" }}
-          >
-            Umbral alerta roja (cm)
-          </label>
-          <input
-            id="sensor-alerta-roja"
-            type="number"
-            step="0.1"
-            min="0"
-            placeholder="16"
-            value={campos.nivel_alerta_roja_cm}
-            onChange={actualizar("nivel_alerta_roja_cm")}
-            required
-            className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
-            style={inputStyle}
-          />
-        </div>
-      </div>
-
-      {error && (
-        <p className="text-sm mt-3" style={{ color: "var(--color-alerta)" }}>
-          {error}
-        </p>
+      {({ valores, actualizar }) => (
+        <>
+          <div>
+            <label
+              htmlFor="sensor-codigo"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Código del ESP32
+            </label>
+            <input
+              id="sensor-codigo"
+              type="text"
+              placeholder="RIO-PIURA-02"
+              value={valores.codigo}
+              onChange={actualizar("codigo")}
+              maxLength={50}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="sensor-nombre"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Nombre / ubicación
+            </label>
+            <input
+              id="sensor-nombre"
+              type="text"
+              placeholder="Puente Bolognesi"
+              value={valores.nombre}
+              onChange={actualizar("nombre")}
+              maxLength={150}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="sensor-lat"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Latitud
+            </label>
+            <input
+              id="sensor-lat"
+              type="number"
+              step="any"
+              placeholder="-5.1945"
+              value={valores.lat}
+              onChange={actualizar("lat")}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="sensor-lon"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-text-muted)" }}
+            >
+              Longitud
+            </label>
+            <input
+              id="sensor-lon"
+              type="number"
+              step="any"
+              placeholder="-80.6328"
+              value={valores.lon}
+              onChange={actualizar("lon")}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="sensor-prealerta"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-prealerta)" }}
+            >
+              Umbral prealerta (cm)
+            </label>
+            <input
+              id="sensor-prealerta"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="10"
+              value={valores.nivel_prealerta_cm}
+              onChange={actualizar("nivel_prealerta_cm")}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              style={inputStyle}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="sensor-alerta-roja"
+              className="text-xs font-semibold"
+              style={{ color: "var(--color-alerta)" }}
+            >
+              Umbral alerta roja (cm)
+            </label>
+            <input
+              id="sensor-alerta-roja"
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="16"
+              value={valores.nivel_alerta_roja_cm}
+              onChange={actualizar("nivel_alerta_roja_cm")}
+              required
+              className="w-full mt-1 rounded-lg border px-3 py-2 text-sm font-mono-data"
+              style={inputStyle}
+            />
+          </div>
+        </>
       )}
-
-      <div className="flex gap-2 mt-4">
-        <button
-          type="submit"
-          disabled={enviando}
-          className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-50"
-          style={{ backgroundColor: "var(--color-primary)" }}
-        >
-          {enviando ? "Registrando..." : "Registrar nodo"}
-        </button>
-        <button
-          type="button"
-          onClick={() => setAbierto(false)}
-          className="text-sm font-medium px-4 py-2"
-          style={{ color: "var(--color-text-muted)" }}
-        >
-          Cancelar
-        </button>
-      </div>
-    </form>
+    </FormularioCreacion>
   );
 }
 
