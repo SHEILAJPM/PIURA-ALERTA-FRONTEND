@@ -11,6 +11,7 @@ import ProtectedRoute from "./componentes/ProtectedRoute";
 import Home from "./paginas/Home";
 import MiPerfil from "./paginas/MiPerfil";
 import RestablecerPassword from "./paginas/RestablecerPassword";
+import VerificarCorreo from "./paginas/VerificarCorreo";
 import Seguro from "./paginas/Seguro";
 import MiPoliza from "./paginas/MiPoliza";
 import { ROLES_PANEL_ADMIN } from "./constantes/roles";
@@ -19,6 +20,7 @@ import { ROLES_PANEL_ADMIN } from "./constantes/roles";
 // que ese peso no entre en el bundle inicial de Home ni del panel admin.
 const Mapa = React.lazy(() => import("./paginas/Mapa"));
 const Reportes = React.lazy(() => import("./paginas/Reportes"));
+const MisReportes = React.lazy(() => import("./paginas/MisReportes"));
 const Historial = React.lazy(() => import("./paginas/Historial"));
 const ModeracionReportes = React.lazy(() => import("./paginas/admin/Reportes"));
 const AdminAlbergues = React.lazy(() => import("./paginas/admin/Albergues"));
@@ -61,10 +63,12 @@ function App() {
                 <Route path="/reportes" element={conSuspenso(<Reportes />)} />
                 <Route path="/historial" element={conSuspenso(<Historial />)} />
                 <Route path="/restablecer-password" element={<RestablecerPassword />} />
+                <Route path="/verificar-correo" element={<VerificarCorreo />} />
                 <Route path="/seguro" element={<Seguro />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/perfil" element={<MiPerfil />} />
                   <Route path="/mi-poliza" element={<MiPoliza />} />
+                  <Route path="/mis-reportes" element={conSuspenso(<MisReportes />)} />
                 </Route>
               </Route>
 

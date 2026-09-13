@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { registrarUsuario, iniciarSesion } from "../utilidades/api";
+import { registrarUsuario, iniciarSesion, verificarCodigo2FA } from "../utilidades/api";
 
 const AuthContext = createContext(null);
 const STORAGE_KEY = "piura-alerta-auth";
@@ -46,8 +46,20 @@ export function AuthProvider({ children }) {
     return () => window.removeEventListener(EVENTO_SESION_EXPIRADA, manejarSesionExpirada);
   }, []);
 
+  // Roles operativos no vuelven con { token, usuario } directo (ver
+  // src/rutas/auth.routes.js): en ese caso se devuelve la respuesta cruda
+  // ({ requiere_2fa, referencia }) para que CampoLogin muestre el segundo
+  // paso, en vez de abrir sesión con datos a medias.
   async function login(correo, password) {
-    const { token, usuario } = await iniciarSesion({ correo, password });
+    const respuesta = await iniciarSesion({ correo, password });
+    if (respuesta.requiere_2fa) return respuesta;
+    setSesion({ token: respuesta.token, usuario: respuesta.usuario });
+    setModal(null);
+    return respuesta.usuario;
+  }
+
+  async function confirmar2FA(referencia, codigo) {
+    const { token, usuario } = await verificarCodigo2FA({ referencia, codigo });
     setSesion({ token, usuario });
     setModal(null);
     return usuario;
@@ -76,6 +88,7 @@ export function AuthProvider({ children }) {
         usuario: sesion?.usuario ?? null,
         token: sesion?.token ?? null,
         login,
+        confirmar2FA,
         registro,
         logout,
         actualizarUsuario,
