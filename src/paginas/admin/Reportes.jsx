@@ -6,6 +6,8 @@ import ErrorBanner from "../../componentes/ErrorBanner";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
 import Icon from "../../componentes/Icon";
 import { exportarReportesCSV, exportarReportesPDF } from "../../utilidades/exportarReportes";
+import { formatearFechaHora as formatearFecha } from "../../utilidades/fecha";
+import { ROLES_ADMINISTRADOR } from "../../constantes/roles";
 
 const ESTADO_LABEL = {
   pendiente: {
@@ -16,16 +18,6 @@ const ESTADO_LABEL = {
   verificado: { text: "Verificado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
   descartado: { text: "Archivado", color: "var(--color-text-muted)", bg: "var(--color-surface-alt)" },
 };
-
-function formatearFecha(iso) {
-  if (!iso) return "";
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 function StatCard({ valor, etiqueta, color }) {
   return (
@@ -177,7 +169,7 @@ function ModeracionReportes() {
   // siquiera les manda esos reportes (ver GET /api/reportes-ciudadanos), así
   // que acá solo falta no mostrarles secciones que para ellos siempre van a
   // estar vacías — el archivo completo queda para Administrador.
-  const esAdministrador = usuario?.rol === "administrador";
+  const esAdministrador = ROLES_ADMINISTRADOR.includes(usuario?.rol);
 
   // Los marcados como posible spam se quedan al final (no se ocultan: la IA
   // puede equivocarse), así los reportes probablemente reales aparecen primero.

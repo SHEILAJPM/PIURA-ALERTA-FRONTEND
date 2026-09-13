@@ -2,10 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useMiPoliza } from "../ganchos/useMiPoliza";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
-
-function formatearFecha(fecha) {
-  return new Date(fecha).toLocaleDateString("es-PE", { day: "2-digit", month: "long", year: "numeric" });
-}
+import { formatearFechaLarga as formatearFecha } from "../utilidades/fecha";
 
 function MiPoliza() {
   const [parametros] = useSearchParams();

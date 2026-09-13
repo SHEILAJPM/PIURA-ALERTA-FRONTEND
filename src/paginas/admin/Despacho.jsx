@@ -1,15 +1,93 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUltimaLectura } from "../../ganchos/useUltimaLectura";
 import { useEstadoSensores } from "../../ganchos/useEstadoSensores";
-import { difundirAlertaManual } from "../../utilidades/api";
+import { useAlertasSOS } from "../../ganchos/useAlertasSOS";
+import { difundirAlertaManual, actualizarEstadoSOS } from "../../utilidades/api";
 import StatusBadge from "../../componentes/StatusBadge";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import ConfirmDialog from "../../componentes/ConfirmDialog";
 import Icon from "../../componentes/Icon";
+import { formatearFechaHora } from "../../utilidades/fecha";
 
 const LIMITE_MENSAJE = 1000;
+
+function AlertasSOS() {
+  const { data: alertas, loading, error, setData } = useAlertasSOS();
+  const [atendiendo, setAtendiendo] = useState(null);
+
+  async function marcarAtendida(id) {
+    setAtendiendo(id);
+    try {
+      await actualizarEstadoSOS(id, "atendido");
+      // El WS (alerta_sos_actualizada) ya la saca de la lista -- esto es solo
+      // por si el propio dispatcher no tiene el WebSocket conectado.
+      setData((prev) => (prev ?? []).filter((a) => a.id !== id));
+    } catch {
+      // el error queda visible porque el botón deja de estar "atendiendo" y
+      // la alerta sigue en la lista para reintentar.
+    } finally {
+      setAtendiendo(null);
+    }
+  }
+
+  if (loading) return <Skeleton className="h-24 rounded-2xl mb-8" />;
+  if (error) {
+    return (
+      <div className="mb-8">
+        <ErrorBanner message={`No se pudieron cargar las alertas SOS: ${error}`} />
+      </div>
+    );
+  }
+  if (!alertas || alertas.length === 0) return null;
+
+  return (
+    <div className="mb-8 space-y-3">
+      {alertas.map((alerta) => {
+        const [lon, lat] = alerta.ubicacion.coordinates;
+        return (
+          <div
+            key={alerta.id}
+            className="rounded-2xl border-2 p-5 flex flex-wrap items-center justify-between gap-4 animate-pulse-alert"
+            style={{ backgroundColor: "var(--color-alerta-soft)", borderColor: "var(--color-alerta)" }}
+          >
+            <div>
+              <p className="font-bold flex items-center gap-2" style={{ color: "var(--color-alerta)" }}>
+                <Icon name="bi-exclamation-octagon-fill" aria-hidden="true" />
+                SOS — {alerta.nombre_contacto ?? "Anónimo"}
+              </p>
+              <p className="text-sm mt-1" style={{ color: "var(--color-text-muted)" }}>
+                {alerta.telefono_contacto && <>Tel: {alerta.telefono_contacto} · </>}
+                {formatearFechaHora(alerta.creado_en)}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <a
+                href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-semibold px-4 py-2 rounded-lg"
+                style={{ backgroundColor: "var(--color-surface)", color: "var(--color-primary)" }}
+              >
+                Ver ubicación
+              </a>
+              <button
+                type="button"
+                onClick={() => marcarAtendida(alerta.id)}
+                disabled={atendiendo === alerta.id}
+                className="text-sm font-semibold px-4 py-2 rounded-lg text-white disabled:opacity-60"
+                style={{ backgroundColor: "var(--color-alerta)" }}
+              >
+                {atendiendo === alerta.id ? "Marcando..." : "Marcar atendido"}
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function DifusionManual() {
   const [mensaje, setMensaje] = useState("");
@@ -108,9 +186,22 @@ function DifusionManual() {
   );
 }
 
+const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
+
 function Despacho() {
-  const { lectura, loading, error } = useUltimaLectura();
   const { data: sensores } = useEstadoSensores();
+  const [sensorCodigo, setSensorCodigo] = useState(SENSOR_POR_DEFECTO);
+
+  // Igual que Home.jsx: si el sensor por defecto ya no existe (renombrado o
+  // borrado desde el panel), cae al primero disponible en vez de dejar la
+  // consola de despacho pegada a un código muerto durante una emergencia.
+  useEffect(() => {
+    if (sensores && sensores.length > 0 && !sensores.some((s) => s.codigo === sensorCodigo)) {
+      setSensorCodigo(sensores[0].codigo);
+    }
+  }, [sensores, sensorCodigo]);
+
+  const { lectura, loading, error } = useUltimaLectura(sensorCodigo);
   const enLinea = sensores?.filter((s) => s.en_linea).length ?? 0;
   const total = sensores?.length ?? 0;
 
@@ -124,6 +215,8 @@ function Despacho() {
             <ErrorBanner message={`No se pudo cargar el estado del río: ${error}`} />
           </div>
         )}
+
+        <AlertasSOS />
 
         <div className="grid gap-4 sm:grid-cols-2 mb-8">
           <div

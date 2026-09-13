@@ -4,15 +4,7 @@ import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
 import { ROLES_ADMINISTRADOR } from "../../constantes/roles";
-
-function formatearFecha(iso) {
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { formatearFechaHora as formatearFecha } from "../../utilidades/fecha";
 
 function StatCard({ valor, etiqueta, color }) {
   return (

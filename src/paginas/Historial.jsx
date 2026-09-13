@@ -4,16 +4,7 @@ import StatusBadge from "../componentes/StatusBadge";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
 import Icon from "../componentes/Icon";
-
-function formatearFecha(iso) {
-  return new Date(iso).toLocaleString("es-PE", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+import { formatearFechaHoraCompleta as formatearFecha } from "../utilidades/fecha";
 
 const ESTADO_TEXTO = {
   normal: "normal",

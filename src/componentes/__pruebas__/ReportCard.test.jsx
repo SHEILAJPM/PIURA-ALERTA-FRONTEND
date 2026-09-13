@@ -13,14 +13,16 @@ const reporteBase = {
   estado: "pendiente",
   likes_count: 3,
   te_gusta: false,
+  confirmaciones_count: 0,
+  tu_confirmaste: false,
   creado_en: "2026-08-16T10:00:00Z",
 };
 
-function renderCard(reporte, onLike = vi.fn()) {
+function renderCard(reporte, onLike = vi.fn(), onConfirmar = vi.fn()) {
   return render(
     <MemoryRouter>
       <AuthProvider>
-        <ReportCard reporte={reporte} onLike={onLike} />
+        <ReportCard reporte={reporte} onLike={onLike} onConfirmar={onConfirmar} />
         <AuthModal />
       </AuthProvider>
     </MemoryRouter>
@@ -63,5 +65,19 @@ describe("ReportCard", () => {
     );
     renderCard({ ...reporteBase, te_gusta: true });
     expect(screen.getByRole("button", { name: "Quitar me gusta" })).toBeInTheDocument();
+  });
+
+  it("con sesión: confirmar llama a onConfirmar con el id del reporte", async () => {
+    localStorage.setItem(
+      "piura-alerta-auth",
+      JSON.stringify({ token: "t", usuario: { id: "u1", nombre: "Sheila" } })
+    );
+    const onConfirmar = vi.fn().mockResolvedValue(undefined);
+    renderCard(reporteBase, vi.fn(), onConfirmar);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Confirmar que esto es real" }));
+    });
+    expect(onConfirmar).toHaveBeenCalledWith("r1");
   });
 });

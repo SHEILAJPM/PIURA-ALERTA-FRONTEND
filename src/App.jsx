@@ -31,6 +31,8 @@ const Tickets = React.lazy(() => import("./paginas/admin/Tickets"));
 const Despacho = React.lazy(() => import("./paginas/admin/Despacho"));
 const Polizas = React.lazy(() => import("./paginas/admin/Polizas"));
 const AsistenteFeedback = React.lazy(() => import("./paginas/admin/AsistenteFeedback"));
+const Impacto = React.lazy(() => import("./paginas/admin/Impacto"));
+const ChequeosSeguridad = React.lazy(() => import("./paginas/admin/ChequeosSeguridad"));
 
 function conSuspenso(elemento) {
   return <Suspense fallback={<div className="p-8 h-150" />}>{elemento}</Suspense>;
@@ -79,6 +81,8 @@ function App() {
                   <Route path="despacho" element={conSuspenso(<Despacho />)} />
                   <Route path="polizas" element={conSuspenso(<Polizas />)} />
                   <Route path="asistente" element={conSuspenso(<AsistenteFeedback />)} />
+                  <Route path="impacto" element={conSuspenso(<Impacto />)} />
+                  <Route path="chequeos-seguridad" element={conSuspenso(<ChequeosSeguridad />)} />
                 </Route>
               </Route>
             </Routes>

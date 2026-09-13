@@ -1,7 +1,115 @@
 import { useState } from "react";
 import { useModalA11y } from "../ganchos/useModalA11y";
+import { useAuth } from "../contexto/AuthContext";
 import { emergencyContacts } from "../datos/content";
+import { enviarSOS } from "../utilidades/api";
 import Icon from "./Icon";
+
+// Geolocalización con permiso ya negado/no soportado: se resuelve igual (con
+// coords null) en vez de rechazar, para no complicar el flujo de un botón de
+// pánico con un catch aparte -- BotonSOS decide qué hacer si no hay ubicación.
+function obtenerUbicacion() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+      () => resolve(null),
+      { timeout: 8000 }
+    );
+  });
+}
+
+function BotonSOS() {
+  const { usuario } = useAuth();
+  const [estado, setEstado] = useState("inicial"); // inicial | confirmando | enviando | enviado | error
+  const [error, setError] = useState(null);
+
+  async function confirmarEnvio() {
+    setEstado("enviando");
+    setError(null);
+    const ubicacion = await obtenerUbicacion();
+    if (!ubicacion) {
+      setError("No se pudo obtener tu ubicación. Activa el GPS/ubicación e intenta de nuevo.");
+      setEstado("error");
+      return;
+    }
+    try {
+      await enviarSOS({ lon: ubicacion.lon, lat: ubicacion.lat });
+      setEstado("enviado");
+    } catch (err) {
+      setError(err.message);
+      setEstado("error");
+    }
+  }
+
+  if (estado === "enviado") {
+    return (
+      <p
+        className="rounded-xl px-4 py-3 text-sm font-semibold flex items-center gap-2"
+        style={{ backgroundColor: "var(--color-normal-soft)", color: "var(--color-normal)" }}
+      >
+        <Icon name="bi-check-circle-fill" aria-hidden="true" />
+        Listo, avisamos a Defensa Civil con tu ubicación.
+      </p>
+    );
+  }
+
+  return (
+    <div className="mb-4">
+      {estado === "confirmando" ? (
+        <div
+          className="rounded-xl p-4"
+          style={{ backgroundColor: "var(--color-alerta-soft)" }}
+        >
+          <p className="text-sm font-semibold mb-3" style={{ color: "var(--color-alerta)" }}>
+            ¿Confirmas que necesitas ayuda ahora? Vamos a mandar tu ubicación exacta a Defensa Civil.
+          </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={confirmarEnvio}
+              className="flex-1 text-sm font-semibold px-4 py-2.5 rounded-lg text-white"
+              style={{ backgroundColor: "var(--color-alerta)" }}
+            >
+              Sí, necesito ayuda
+            </button>
+            <button
+              type="button"
+              onClick={() => setEstado("inicial")}
+              className="text-sm font-semibold px-4 py-2.5 rounded-lg"
+              style={{ backgroundColor: "var(--color-surface)", color: "var(--color-text-muted)" }}
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setEstado("confirmando")}
+          disabled={estado === "enviando"}
+          className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl text-white disabled:opacity-60"
+          style={{ backgroundColor: "var(--color-alerta)" }}
+        >
+          <Icon name="bi-geo-alt-fill" aria-hidden="true" />
+          {estado === "enviando"
+            ? "Enviando ubicación..."
+            : usuario
+              ? "Enviar SOS con mi ubicación a Defensa Civil"
+              : "Enviar SOS con mi ubicación (sin necesidad de cuenta)"}
+        </button>
+      )}
+      {error && (
+        <p className="text-sm mt-2" style={{ color: "var(--color-alerta)" }}>
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function DialogoEmergencia({ onCerrar }) {
   const contenedorRef = useModalA11y(onCerrar);
@@ -44,6 +152,8 @@ function DialogoEmergencia({ onCerrar }) {
         <p className="text-sm mb-4" style={{ color: "var(--color-text-muted)" }}>
           Si es una emergencia real, llama directamente. No esperes a que la app confirme nada.
         </p>
+
+        <BotonSOS />
 
         <ul className="space-y-2">
           {emergencyContacts.map((c) => (

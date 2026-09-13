@@ -6,7 +6,10 @@ import { useWebSocketStatus } from "../contexto/WebSocketContext";
 import { useAuth } from "../contexto/AuthContext";
 import { ROLES_PANEL_ADMIN } from "../constantes/roles";
 
-function useRelojEnVivo() {
+// Aislado en su propio componente a propósito: el estado que cambia cada
+// segundo vive acá, no en Header, así el tic-tac del reloj no re-renderiza
+// todo el header (nav, menú, toggles) una vez por segundo.
+function RelojEnVivo() {
   const [hora, setHora] = useState(() => new Date());
 
   useEffect(() => {
@@ -14,7 +17,14 @@ function useRelojEnVivo() {
     return () => clearInterval(id);
   }, []);
 
-  return hora.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  return (
+    <span
+      className="hidden lg:inline font-mono-data text-sm tabular-nums"
+      style={{ color: "var(--color-dorado)" }}
+    >
+      {hora.toLocaleTimeString("es-PE", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+    </span>
+  );
 }
 
 const LINKS_BASE = [
@@ -71,7 +81,6 @@ function Header() {
   const conexion = ESTADOS_CONEXION[wsStatus] ?? ESTADOS_CONEXION.closed;
   const { usuario, logout, abrirModal } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const hora = useRelojEnVivo();
   const links =
     usuario && ROLES_PANEL_ADMIN.includes(usuario.rol)
       ? [...LINKS_BASE, { to: "/admin", label: "Admin" }]
@@ -118,12 +127,7 @@ function Header() {
             </nav>
 
             <div className="flex items-center gap-4 sm:gap-5 ml-4 sm:ml-6 pl-4 sm:pl-6 border-l border-white/15">
-              <span
-                className="hidden lg:inline font-mono-data text-sm tabular-nums"
-                style={{ color: "var(--color-dorado)" }}
-              >
-                {hora}
-              </span>
+              <RelojEnVivo />
 
               {usuario ? (
                 <div className="flex items-center gap-2 sm:gap-3 text-sm text-white/90">

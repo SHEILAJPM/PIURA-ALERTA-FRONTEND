@@ -38,15 +38,16 @@ export async function reintentarColaReportes(crearReporte) {
     const cola = leerCola();
     if (cola.length === 0) return;
 
-    const pendientes = [];
-    for (const item of cola) {
-      const { _id, ...datos } = item;
-      try {
-        await crearReporte(datos);
-      } catch {
-        pendientes.push(item);
-      }
-    }
+    // En paralelo: son a lo sumo un puñado de reportes (limitadorEscrituraPublica
+    // permite 20 cada 10 min, muy por encima de lo que se acumula estando
+    // offline), así que no hace falta mandarlos de a uno esperando cada respuesta.
+    const resultados = await Promise.allSettled(
+      cola.map((item) => {
+        const { _id, ...datos } = item;
+        return crearReporte(datos);
+      })
+    );
+    const pendientes = cola.filter((_item, i) => resultados[i].status === "rejected");
     guardarCola(pendientes);
   } finally {
     reintentando = false;
