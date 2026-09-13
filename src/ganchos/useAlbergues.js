@@ -1,28 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
+import { useResource } from "./useResource";
 import { getAlbergues } from "../utilidades/api";
 import { useWebSocketEvent } from "../contexto/WebSocketContext";
 
 export function useAlbergues() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  const cargar = useCallback(async () => {
-    setLoading(true);
-    try {
-      const resultado = await getAlbergues();
-      setData(resultado);
-      setError(null);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    cargar();
-  }, [cargar]);
+  const { data, loading, error, setData, recargar } = useResource(getAlbergues, []);
 
   // En vivo (ver albergues.routes.js): así el mapa y el feed público reflejan
   // un cambio de aforo o un albergue nuevo/quitado sin que nadie tenga que
@@ -46,5 +27,5 @@ export function useAlbergues() {
     setData((prev) => (prev ?? []).filter((a) => a.id !== id));
   });
 
-  return { data, loading, error, setData, recargar: cargar };
+  return { data, loading, error, setData, recargar };
 }
