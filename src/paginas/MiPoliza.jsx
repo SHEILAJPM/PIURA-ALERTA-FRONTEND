@@ -1,13 +1,62 @@
 import { Link, useSearchParams } from "react-router-dom";
 import { useMiPoliza } from "../ganchos/useMiPoliza";
+import { useMisReclamosSeguro } from "../ganchos/useReclamosSeguro";
+import { crearReclamoSeguro } from "../utilidades/api";
+import ReclamoSeguroForm from "../componentes/ReclamoSeguroForm";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
 import { formatearFechaLarga as formatearFecha } from "../utilidades/fecha";
+
+const ESTADO_RECLAMO = {
+  pendiente: { texto: "En revisión", color: "var(--color-prealerta)", bg: "var(--color-prealerta-soft)" },
+  aprobado: { texto: "Aprobado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
+  pagado: { texto: "Pagado", color: "var(--color-normal)", bg: "var(--color-normal-soft)" },
+  rechazado: { texto: "No aprobado", color: "var(--color-alerta)", bg: "var(--color-alerta-soft)" },
+};
+
+function TarjetaReclamo({ reclamo }) {
+  const estado = ESTADO_RECLAMO[reclamo.estado];
+  return (
+    <div
+      className="rounded-2xl border p-4"
+      style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-surface)" }}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-sm font-semibold">{formatearFecha(reclamo.fecha_dano)}</p>
+        <span
+          className="text-xs font-semibold px-2.5 py-1 rounded-full"
+          style={{ color: estado.color, backgroundColor: estado.bg }}
+        >
+          {estado.texto}
+        </span>
+      </div>
+      <p className="text-sm mt-1.5" style={{ color: "var(--color-text-muted)" }}>
+        {reclamo.descripcion}
+      </p>
+      {reclamo.estado === "rechazado" && reclamo.motivo_rechazo && (
+        <p className="text-xs mt-2" style={{ color: "var(--color-alerta)" }}>
+          Motivo: {reclamo.motivo_rechazo}
+        </p>
+      )}
+      {(reclamo.estado === "aprobado" || reclamo.estado === "pagado") && (
+        <p className="text-sm font-bold mt-2" style={{ color: "var(--color-normal)" }}>
+          S/ {(reclamo.monto_aprobado_centavos / 100).toFixed(2)}
+        </p>
+      )}
+    </div>
+  );
+}
 
 function MiPoliza() {
   const [parametros] = useSearchParams();
   const pagoExitoso = parametros.get("pago") === "exitoso";
   const { data, loading, error, recargar } = useMiPoliza();
+  const { data: reclamos, recargar: recargarReclamos } = useMisReclamosSeguro();
+
+  async function manejarReclamo(datos) {
+    await crearReclamoSeguro(datos);
+    recargarReclamos();
+  }
 
   return (
     <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -81,6 +130,21 @@ function MiPoliza() {
             Ver planes
           </Link>
         </div>
+      )}
+
+      {data?.poliza && (
+        <section className="mt-8 space-y-4">
+          <h3 className="font-bold text-lg">Daños por el río</h3>
+          <ReclamoSeguroForm onEnviar={manejarReclamo} />
+
+          {reclamos && reclamos.length > 0 && (
+            <div className="space-y-3">
+              {reclamos.map((r) => (
+                <TarjetaReclamo key={r.id} reclamo={r} />
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </main>
   );

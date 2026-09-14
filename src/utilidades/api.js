@@ -310,6 +310,32 @@ export function getPolizas() {
   return apiFetch("/api/polizas");
 }
 
+export function getTopesIndemnizacion() {
+  return apiFetch("/api/reclamos-seguro/topes");
+}
+
+export function crearReclamoSeguro({ fecha_dano, descripcion, foto_urls }) {
+  return apiFetch("/api/reclamos-seguro", {
+    method: "POST",
+    body: JSON.stringify({ fecha_dano, descripcion, foto_urls }),
+  });
+}
+
+export function getMisReclamosSeguro() {
+  return apiFetch("/api/reclamos-seguro/mios");
+}
+
+export function getReclamosSeguro() {
+  return apiFetch("/api/reclamos-seguro");
+}
+
+export function revisarReclamoSeguro(id, datos) {
+  return apiFetch(`/api/reclamos-seguro/${id}/estado`, {
+    method: "PATCH",
+    body: JSON.stringify(datos),
+  });
+}
+
 export function marcarSeguro() {
   return apiFetch("/api/chequeos-seguridad", { method: "POST" });
 }

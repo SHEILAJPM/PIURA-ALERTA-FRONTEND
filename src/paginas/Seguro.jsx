@@ -1,17 +1,55 @@
 import { useState } from "react";
 import { useAuth } from "../contexto/AuthContext";
 import { useResource } from "../ganchos/useResource";
-import { getPlanesSeguro, crearCheckoutSeguro } from "../utilidades/api";
+import { getPlanesSeguro, getTopesIndemnizacion, crearCheckoutSeguro } from "../utilidades/api";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
+import Icon from "../componentes/Icon";
 
 const NOMBRE_PERIODO = { 1: "1 mes", 3: "3 meses", 6: "6 meses", 12: "1 año" };
+
+const BENEFICIOS = [
+  {
+    icono: "bi-water",
+    titulo: "Reportas el daño con fotos",
+    texto: "Si el río daña tu casa o tus cosas durante tu cobertura, cuéntanos qué pasó y adjunta fotos desde \"Mi póliza\".",
+  },
+  {
+    icono: "bi-person-badge",
+    titulo: "Un administrador lo revisa",
+    texto: "Cada caso se evalúa por separado — no es un monto automático, alguien del equipo mira tu reporte y decide cuánto reconocer.",
+  },
+  {
+    icono: "bi-heart-fill",
+    titulo: "Reconocimiento hasta un tope",
+    texto: "El monto aprobado depende del daño, hasta el tope de tu plan (ver cada tarjeta abajo). El pago se coordina aparte, por Yape o transferencia.",
+  },
+];
+
+function TarjetaBeneficio({ icono, titulo, texto }) {
+  return (
+    <div className="flex gap-3">
+      <div
+        className="shrink-0 w-11 h-11 rounded-full flex items-center justify-center text-lg"
+        style={{ backgroundColor: "var(--color-primary-soft)", color: "var(--color-primary)" }}
+      >
+        <Icon name={icono} aria-hidden="true" />
+      </div>
+      <div>
+        <p className="font-bold text-sm">{titulo}</p>
+        <p className="text-sm mt-0.5" style={{ color: "var(--color-text-muted)" }}>
+          {texto}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 function formatearPrecio(centavos) {
   return `S/ ${(centavos / 100).toFixed(2)}`;
 }
 
-function TarjetaPlan({ plan, destacado, procesando, onContratar }) {
+function TarjetaPlan({ plan, tope, destacado, procesando, onContratar }) {
   return (
     <div
       className="rounded-2xl border p-6 flex flex-col gap-4"
@@ -37,6 +75,14 @@ function TarjetaPlan({ plan, destacado, procesando, onContratar }) {
             {Math.round(plan.descuento * 100)}% de descuento vs. pagar mes a mes
           </p>
         )}
+        {tope != null && (
+          <p
+            className="text-xs mt-2 font-semibold px-2 py-1 rounded-full inline-block"
+            style={{ color: "var(--color-primary)", backgroundColor: "var(--color-primary-soft)" }}
+          >
+            Reconocimiento hasta {formatearPrecio(tope)}
+          </p>
+        )}
       </div>
       <button
         type="button"
@@ -54,6 +100,7 @@ function TarjetaPlan({ plan, destacado, procesando, onContratar }) {
 function Seguro() {
   const { usuario, abrirModal } = useAuth();
   const { data: planes, loading, error, recargar } = useResource(getPlanesSeguro, []);
+  const { data: topes } = useResource(getTopesIndemnizacion, []);
   const [mesesProcesando, setMesesProcesando] = useState(null);
   const [errorPago, setErrorPago] = useState(null);
 
@@ -84,9 +131,36 @@ function Seguro() {
         </p>
         <h2 className="text-3xl md:text-4xl font-bold mt-2">Cobertura contra inundaciones</h2>
         <p className="mt-3 max-w-2xl" style={{ color: "var(--color-text-muted)" }}>
-          Paga por adelantado el periodo que prefieras. Mientras tu póliza esté vigente, quedas cubierto
-          ante una crecida del río sin trámites ni papeleo — el mismo sistema que ya monitorea el nivel del
-          agua es el que respalda la cobertura.
+          Paga por adelantado el periodo que prefieras. Si el río daña tu casa o tus cosas mientras tu
+          póliza esté vigente, reporta el daño con fotos y el equipo evalúa cuánto reconocerte, hasta el
+          tope de tu plan.
+        </p>
+      </section>
+
+      <section
+        className="mb-8 rounded-2xl border p-6 sm:p-7"
+        style={{
+          borderColor: "var(--color-primary)",
+          backgroundColor: "var(--color-surface)",
+          boxShadow: "0 0 0 1px var(--color-primary-soft)",
+        }}
+      >
+        <div className="flex items-center gap-2 mb-5">
+          <Icon name="bi-heart-fill" aria-hidden="true" style={{ color: "var(--color-primary)" }} />
+          <h3 className="font-extrabold text-lg">¿Qué incluye tu cobertura?</h3>
+        </div>
+        <div className="grid gap-5 sm:grid-cols-3">
+          {BENEFICIOS.map((b) => (
+            <TarjetaBeneficio key={b.titulo} {...b} />
+          ))}
+        </div>
+        <p
+          className="text-xs mt-6 pt-4 border-t"
+          style={{ color: "var(--color-text-muted)", borderColor: "var(--color-border)" }}
+        >
+          El monto se define caso por caso al revisar tu reporte, no es un cálculo automático ni un pago
+          garantizado — por eso hay un tope según el plan. Las alertas, el mapa, el botón de pánico y los
+          albergues son y seguirán siendo gratuitos para todos, tengas o no un plan contratado.
         </p>
       </section>
 
@@ -110,6 +184,7 @@ function Seguro() {
               <TarjetaPlan
                 key={plan.meses}
                 plan={plan}
+                tope={topes?.[plan.meses]}
                 destacado={plan.meses === 12}
                 procesando={mesesProcesando === plan.meses}
                 onContratar={manejarContratar}
