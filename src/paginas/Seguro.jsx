@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "../contexto/AuthContext";
 import { useResource } from "../ganchos/useResource";
-import { getPlanesSeguro, getTopesIndemnizacion, crearCheckoutSeguro } from "../utilidades/api";
+import { getPlanesSeguro, getTopesIndemnizacion, getMiPoliza, crearCheckoutSeguro } from "../utilidades/api";
 import Skeleton from "../componentes/Skeleton";
 import ErrorBanner from "../componentes/ErrorBanner";
 import Icon from "../componentes/Icon";
@@ -101,6 +102,10 @@ function Seguro() {
   const { usuario, abrirModal } = useAuth();
   const { data: planes, loading, error, recargar } = useResource(getPlanesSeguro, []);
   const { data: topes } = useResource(getTopesIndemnizacion, []);
+  // Sin `usuario`, se resuelve en null sin llamar al backend -- pedir
+  // "mi póliza" a un visitante anónimo solo generaría un 401 de más en cada
+  // visita a esta página, que es pública.
+  const { data: miPoliza } = useResource(() => (usuario ? getMiPoliza() : Promise.resolve(null)), [usuario]);
   const [mesesProcesando, setMesesProcesando] = useState(null);
   const [errorPago, setErrorPago] = useState(null);
 
@@ -136,6 +141,24 @@ function Seguro() {
           tope de tu plan.
         </p>
       </section>
+
+      {miPoliza?.vigente && (
+        <div
+          className="mb-8 rounded-2xl border p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 justify-between"
+          style={{ borderColor: "var(--color-normal)", backgroundColor: "var(--color-normal-soft)" }}
+        >
+          <p className="text-sm font-semibold" style={{ color: "var(--color-normal)" }}>
+            <Icon name="bi-check-circle-fill" aria-hidden="true" /> Ya tienes una póliza vigente.
+          </p>
+          <Link
+            to="/mi-poliza"
+            className="shrink-0 rounded-lg px-4 py-2 text-sm font-semibold text-white text-center"
+            style={{ backgroundColor: "var(--color-primary)" }}
+          >
+            Reportar un daño
+          </Link>
+        </div>
+      )}
 
       <section
         className="mb-8 rounded-2xl border p-6 sm:p-7"
