@@ -1,6 +1,7 @@
 import React, { useCallback, useState } from "react";
+import { useAuth } from "../../contexto/AuthContext";
 import { useUsuarios } from "../../ganchos/useUsuarios";
-import { actualizarRolUsuario } from "../../utilidades/api";
+import { actualizarRolUsuario, actualizarActivoUsuario } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
 import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
@@ -17,20 +18,33 @@ const ROLES = [
 
 // Memoizado: con muchos usuarios, cambiar el rol de uno solo no debería
 // re-renderizar (ni volver a montar el <select> de) todas las demás filas.
-const FilaUsuario = React.memo(function FilaUsuario({ usuario, onCambiarRol }) {
-  const [guardando, setGuardando] = useState(false);
+const FilaUsuario = React.memo(function FilaUsuario({ usuario, esUnoMismo, onCambiarRol, onCambiarActivo }) {
+  const [guardandoRol, setGuardandoRol] = useState(false);
+  const [guardandoActivo, setGuardandoActivo] = useState(false);
   const [error, setError] = useState(null);
 
   async function manejarCambio(e) {
     const nuevoRol = e.target.value;
-    setGuardando(true);
+    setGuardandoRol(true);
     setError(null);
     try {
       await onCambiarRol(usuario.id, nuevoRol);
     } catch (err) {
       setError(err.message);
     } finally {
-      setGuardando(false);
+      setGuardandoRol(false);
+    }
+  }
+
+  async function alternarActivo() {
+    setGuardandoActivo(true);
+    setError(null);
+    try {
+      await onCambiarActivo(usuario.id, !usuario.activo);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGuardandoActivo(false);
     }
   }
 
@@ -45,11 +59,27 @@ const FilaUsuario = React.memo(function FilaUsuario({ usuario, onCambiarRol }) {
       <td className="pr-4 py-3 text-xs font-mono-data" style={{ color: "var(--color-text-muted)" }}>
         {formatearFecha(usuario.creado_en)}
       </td>
+      <td className="pr-4 py-3 text-right">
+        <button
+          type="button"
+          onClick={alternarActivo}
+          disabled={guardandoActivo || esUnoMismo}
+          title={esUnoMismo ? "No puedes desactivar tu propia cuenta" : undefined}
+          className="text-xs font-semibold px-3 py-1 rounded-full disabled:opacity-50"
+          style={
+            usuario.activo
+              ? { color: "var(--color-normal)", backgroundColor: "var(--color-normal-soft)" }
+              : { color: "var(--color-text-muted)", backgroundColor: "var(--color-surface-alt)" }
+          }
+        >
+          {guardandoActivo ? "..." : usuario.activo ? "Activo" : "Desactivado"}
+        </button>
+      </td>
       <td className="pr-5 py-3 text-right">
         <select
           value={usuario.rol}
           onChange={manejarCambio}
-          disabled={guardando}
+          disabled={guardandoRol}
           className="rounded-lg border px-2 py-1.5 text-sm disabled:opacity-50"
           style={{
             borderColor: "var(--color-border)",
@@ -74,12 +104,21 @@ const FilaUsuario = React.memo(function FilaUsuario({ usuario, onCambiarRol }) {
 });
 
 function Usuarios() {
+  const { usuario: usuarioActual } = useAuth();
   const { data: usuarios, loading, error, setData, recargar } = useUsuarios();
 
   const cambiarRol = useCallback(
     async (id, rol) => {
       const actualizado = await actualizarRolUsuario(id, rol);
       setData((prev) => prev.map((u) => (u.id === id ? { ...u, rol: actualizado.rol } : u)));
+    },
+    [setData]
+  );
+
+  const cambiarActivo = useCallback(
+    async (id, activo) => {
+      const actualizado = await actualizarActivoUsuario(id, activo);
+      setData((prev) => prev.map((u) => (u.id === id ? { ...u, activo: actualizado.activo } : u)));
     },
     [setData]
   );
@@ -116,12 +155,19 @@ function Usuarios() {
                 >
                   <th className="pl-5 pr-4 py-3 font-semibold">Usuario</th>
                   <th className="pr-4 py-3 font-semibold">Registrado</th>
+                  <th className="pr-4 py-3 font-semibold text-right">Estado</th>
                   <th className="pr-5 py-3 font-semibold text-right">Rol</th>
                 </tr>
               </thead>
               <tbody>
                 {usuarios.map((u) => (
-                  <FilaUsuario key={u.id} usuario={u} onCambiarRol={cambiarRol} />
+                  <FilaUsuario
+                    key={u.id}
+                    usuario={u}
+                    esUnoMismo={u.id === usuarioActual?.id}
+                    onCambiarRol={cambiarRol}
+                    onCambiarActivo={cambiarActivo}
+                  />
                 ))}
               </tbody>
             </table>

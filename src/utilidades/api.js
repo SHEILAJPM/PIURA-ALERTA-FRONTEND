@@ -201,6 +201,13 @@ export function actualizarRolUsuario(usuarioId, rol) {
   });
 }
 
+export function actualizarActivoUsuario(usuarioId, activo) {
+  return apiFetch(`/api/usuarios/${usuarioId}/activo`, {
+    method: "PATCH",
+    body: JSON.stringify({ activo }),
+  });
+}
+
 export function getAuditoria(limite = 100) {
   return apiFetch(`/api/auditoria?limite=${limite}`);
 }
