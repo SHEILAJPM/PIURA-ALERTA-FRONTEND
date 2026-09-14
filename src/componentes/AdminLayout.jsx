@@ -19,6 +19,7 @@ const GRUPOS = [
       { to: "/admin/sensores", label: "Catálogo de Nodos (ESP32 / GPS)", icon: "bi-broadcast-pin" },
       { to: "/admin/auditoria", label: "Registro de Auditoría", icon: "bi-journal-text" },
       { to: "/admin/polizas", label: "Pólizas de Seguro", icon: "bi-check-circle-fill" },
+      { to: "/admin/reclamos-seguro", label: "Reclamos de Seguro", icon: "bi-exclamation-triangle-fill" },
       { to: "/admin/asistente", label: "Feedback del Asistente IA", icon: "bi-robot" },
       { to: "/admin/configuracion", label: "Configuración de Notificaciones", icon: "bi-bell" },
     ],

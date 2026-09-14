@@ -32,6 +32,7 @@ const Auditoria = React.lazy(() => import("./paginas/admin/Auditoria"));
 const Tickets = React.lazy(() => import("./paginas/admin/Tickets"));
 const Despacho = React.lazy(() => import("./paginas/admin/Despacho"));
 const Polizas = React.lazy(() => import("./paginas/admin/Polizas"));
+const ReclamosSeguro = React.lazy(() => import("./paginas/admin/ReclamosSeguro"));
 const AsistenteFeedback = React.lazy(() => import("./paginas/admin/AsistenteFeedback"));
 const Impacto = React.lazy(() => import("./paginas/admin/Impacto"));
 const ChequeosSeguridad = React.lazy(() => import("./paginas/admin/ChequeosSeguridad"));
@@ -85,6 +86,7 @@ function App() {
                   <Route path="tickets" element={conSuspenso(<Tickets />)} />
                   <Route path="despacho" element={conSuspenso(<Despacho />)} />
                   <Route path="polizas" element={conSuspenso(<Polizas />)} />
+                  <Route path="reclamos-seguro" element={conSuspenso(<ReclamosSeguro />)} />
                   <Route path="asistente" element={conSuspenso(<AsistenteFeedback />)} />
                   <Route path="impacto" element={conSuspenso(<Impacto />)} />
                   <Route path="chequeos-seguridad" element={conSuspenso(<ChequeosSeguridad />)} />
