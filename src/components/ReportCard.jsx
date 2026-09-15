@@ -6,7 +6,8 @@ import { formatearDistancia } from "../lib/geo";
 
 const ESTADO_LABEL = {
   pendiente: { text: "Pendiente de revisión", color: "var(--color-prealerta)" },
-  verificado: null, // el caso normal no necesita aclaración aparte
+  verificado: { text: "✅ Verificado por Defensa Civil", color: "var(--color-normal)" },
+  en_progreso: { text: "🔄 En progreso", color: "var(--color-primary)" },
   descartado: { text: "Archivado por moderación", color: "var(--color-text-muted)" },
 };
 
@@ -36,29 +37,46 @@ async function compartir(reporte) {
   await navigator.clipboard?.writeText(`${texto} — ${window.location.href}`);
 }
 
-function ReportCard({ reporte, onLike, distanciaKm }) {
+function ReportCard({ reporte, onReaccion, distanciaKm }) {
   const { usuario, abrirModal } = useAuth();
-  const [enviandoLike, setEnviandoLike] = useState(false);
+  const [enviandoReaccion, setEnviandoReaccion] = useState(false);
   const aviso = ESTADO_LABEL[reporte.estado];
 
-  async function manejarLike() {
+  // Determinar qué reacción tiene el usuario actual
+  const reaccionUsuario = reporte.reaccion_usuario || null;
+
+  async function manejarReaccion(tipo) {
     if (!usuario) {
       abrirModal("login");
       return;
     }
-    if (enviandoLike) return;
-    setEnviandoLike(true);
+    if (enviandoReaccion) return;
+
+    // Si ya tiene esta reacción, la quita (toggle)
+    const nuevaReaccion = reaccionUsuario === tipo ? null : tipo;
+
+    setEnviandoReaccion(true);
     try {
-      await onLike(reporte.id);
+      await onReaccion(reporte.id, nuevaReaccion);
     } finally {
-      setEnviandoLike(false);
+      setEnviandoReaccion(false);
     }
   }
 
+  // Obtener contadores de reacciones
+  const contadorUtil = reporte.reacciones_util || 0;
+  const contadorAlerta = reporte.reacciones_alerta || 0;
+  const contadorConfirmo = reporte.reacciones_confirmo || 0;
+
   return (
     <article
-      className="rounded-2xl border overflow-hidden"
-      style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+      className={`rounded-2xl border overflow-hidden ${reporte.estado === "verificado" ? "border-green-400 dark:border-green-600" : ""
+        } ${reporte.estado === "en_progreso" ? "border-blue-400 dark:border-blue-600" : ""
+        }`}
+      style={{
+        backgroundColor: "var(--color-surface)",
+        borderColor: "var(--color-border)"
+      }}
     >
       <header className="flex items-center gap-3 px-4 py-3">
         <Avatar nombre={reporte.usuario_nombre} size={36} />
@@ -107,34 +125,58 @@ function ReportCard({ reporte, onLike, distanciaKm }) {
         </div>
       )}
 
-      <div className="px-4 pt-3 flex items-center gap-4">
+      {/* BARRA DE REACCIONES MEJORADA */}
+      <div className="px-4 pt-3 flex items-center gap-2 flex-wrap">
         <button
           type="button"
-          onClick={manejarLike}
-          disabled={enviandoLike}
-          aria-label={reporte.te_gusta ? "Quitar me gusta" : "Dar me gusta"}
-          className="disabled:opacity-60 transition-transform active:scale-90"
-          style={{ color: reporte.te_gusta ? "var(--color-alerta)" : "var(--color-text)" }}
+          onClick={() => manejarReaccion("util")}
+          disabled={enviandoReaccion}
+          aria-label="Marcar como útil"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "util"
+              ? "border-green-500 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
         >
-          <Icon
-            name={reporte.te_gusta ? "bi-heart-fill" : "bi-heart"}
-            aria-hidden="true"
-            className="text-2xl"
-          />
+          👍 Útil {contadorUtil > 0 && `(${contadorUtil})`}
         </button>
+
+        <button
+          type="button"
+          onClick={() => manejarReaccion("alerta")}
+          disabled={enviandoReaccion}
+          aria-label="Marcar como alerta"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "alerta"
+              ? "border-red-500 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+        >
+          🚨 Alerta {contadorAlerta > 0 && `(${contadorAlerta})`}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => manejarReaccion("confirmo")}
+          disabled={enviandoReaccion}
+          aria-label="Confirmar situación"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "confirmo"
+              ? "border-blue-500 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+              : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+            }`}
+        >
+          ✅ Confirmo {contadorConfirmo > 0 && `(${contadorConfirmo})`}
+        </button>
+
         <button
           type="button"
           onClick={() => compartir(reporte)}
           aria-label="Compartir reporte"
-          className="transition-transform active:scale-90"
-          style={{ color: "var(--color-text)" }}
+          className="ml-auto transition-transform active:scale-90 text-gray-500 dark:text-gray-400"
         >
           <Icon name="bi-send" aria-hidden="true" className="text-xl -rotate-12" />
         </button>
       </div>
 
       <div className="px-4 pt-2 pb-4">
-        {reporte.likes_count > 0 && <p className="text-sm font-semibold">{reporte.likes_count} me gusta</p>}
         {reporte.foto_url && (
           <p className="text-sm mt-1">
             <span className="font-semibold">{reporte.usuario_nombre}</span> {reporte.descripcion}

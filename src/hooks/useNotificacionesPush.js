@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { obtenerClavePublicaPush, suscribirPush, desuscribirPush } from "../lib/api";
 
-// La Push API entrega la applicationServerKey en base64url; el navegador
-// solo acepta Uint8Array, así que hay que convertirla a mano.
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -17,12 +15,16 @@ export function useNotificacionesPush() {
   const [cargando, setCargando] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState(null);
+  const [permiso, setPermiso] = useState(null);
 
   useEffect(() => {
     if (!SOPORTADO) {
       setCargando(false);
       return;
     }
+    
+    setPermiso(Notification.permission);
+    
     navigator.serviceWorker.ready
       .then((registro) => registro.pushManager.getSubscription())
       .then((sub) => setSuscrito(sub != null))
@@ -36,6 +38,8 @@ export function useNotificacionesPush() {
     setError(null);
     try {
       const permiso = await Notification.requestPermission();
+      setPermiso(permiso);
+      
       if (permiso !== "granted") {
         setError("No diste permiso para las notificaciones en el navegador.");
         return;
@@ -57,6 +61,12 @@ export function useNotificacionesPush() {
 
       await suscribirPush(suscripcion.toJSON());
       setSuscrito(true);
+      
+      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+        try {
+          await registro.sync.register('sync-reportes');
+        } catch {}
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -83,5 +93,57 @@ export function useNotificacionesPush() {
     }
   }
 
-  return { soportado: SOPORTADO, suscrito, cargando, procesando, error, activar, desactivar };
+  async function probarNotificacion(tipo = 'general') {
+    if (!suscrito) {
+      setError('Primero debes activar las notificaciones.');
+      return;
+    }
+
+    try {
+      const registro = await navigator.serviceWorker.ready;
+      
+      const mensajes = {
+        alerta_roja: {
+          titulo: '🚨 ALERTA ROJA - Prueba',
+          cuerpo: 'Esta es una notificación de prueba para alerta roja.',
+        },
+        reporte_verificado: {
+          titulo: '✅ Reporte verificado',
+          cuerpo: 'Tu reporte cercano ha sido verificado por Defensa Civil.',
+        },
+        general: {
+          titulo: '🔔 Piura Alerta',
+          cuerpo: 'Las notificaciones funcionan correctamente.',
+        },
+      };
+
+      const msg = mensajes[tipo] || mensajes.general;
+      
+      await registro.showNotification(msg.titulo, {
+        body: msg.cuerpo,
+        icon: '/pwa-192.png',
+        badge: '/pwa-192.png',
+        tag: `test-${Date.now()}`,
+        vibrate: [100, 50, 100],
+        data: { url: '/' },
+      });
+      
+      return true;
+    } catch (err) {
+      setError('No se pudo enviar la notificación de prueba.');
+      return false;
+    }
+  }
+
+  return { 
+    soportado: SOPORTADO, 
+    suscrito, 
+    cargando, 
+    procesando, 
+    error, 
+    permiso,
+    activar, 
+    desactivar,
+    probarNotificacion,
+  };
 }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { subirFoto } from "../lib/cloudinary";
 import { useAuth } from "../context/AuthContext";
 import Avatar from "./Avatar";
@@ -19,21 +19,67 @@ function ReportForm({ onEnviar, enviando }) {
   const [ubicacion, setUbicacion] = useState(null);
   const [errorLocal, setErrorLocal] = useState(null);
   const [avisoEncolado, setAvisoEncolado] = useState(false);
+  const [obteniendoUbicacion, setObteniendoUbicacion] = useState(false);
 
-  function obtenerUbicacion() {
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      return;
+    }
+
+    setObteniendoUbicacion(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUbicacion({
+          lon: pos.coords.longitude,
+          lat: pos.coords.latitude,
+        });
+        setObteniendoUbicacion(false);
+        setErrorLocal(null);
+      },
+      (err) => {
+        // Silencioso si el usuario deniega o hay error
+        setObteniendoUbicacion(false);
+        // Solo mostramos error si el usuario lo pide explícitamente
+        if (err.code === err.PERMISSION_DENIED) {
+          // No mostramos error automático, solo guardamos que no hay ubicación
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 60000, // 1 minuto de caché
+      }
+    );
+  }, []); 
+
+  function obtenerUbicacionManual() {
     if (!navigator.geolocation) {
       setErrorLocal("Tu navegador no soporta geolocalización.");
       return;
     }
+    setObteniendoUbicacion(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => setUbicacion({ lon: pos.coords.longitude, lat: pos.coords.latitude }),
-      () => setErrorLocal("No se pudo obtener tu ubicación.")
+      (pos) => {
+        setUbicacion({ lon: pos.coords.longitude, lat: pos.coords.latitude });
+        setObteniendoUbicacion(false);
+        setErrorLocal(null);
+      },
+      () => {
+        setObteniendoUbicacion(false);
+        setErrorLocal("No se pudo obtener tu ubicación. Puedes intentar de nuevo.");
+      }
     );
   }
 
   async function manejarSeleccionFoto(e) {
     const archivo = e.target.files?.[0];
     if (!archivo) return;
+
+    // Validar tamaño (máximo 5MB)
+    if (archivo.size > 5 * 1024 * 1024) {
+      setErrorLocal("La imagen es demasiado grande. Máximo 5MB.");
+      return;
+    }
 
     const previsualizacion = URL.createObjectURL(archivo);
     setFoto({ url: null, previsualizacion });
@@ -77,6 +123,11 @@ function ReportForm({ onEnviar, enviando }) {
     } catch (err) {
       setErrorLocal(err.message);
     }
+  }
+
+  function formatearUbicacion() {
+    if (!ubicacion) return null;
+    return `${ubicacion.lat.toFixed(5)}, ${ubicacion.lon.toFixed(5)}`;
   }
 
   return (
@@ -140,15 +191,32 @@ function ReportForm({ onEnviar, enviando }) {
         <input type="file" accept="image/*" onChange={manejarSeleccionFoto} className="hidden" />
       </label>
 
-      <button
-        type="button"
-        onClick={obtenerUbicacion}
-        className="flex items-center gap-1.5 text-sm font-semibold"
-        style={{ color: "var(--color-primary)" }}
-      >
-        <Icon name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"} aria-hidden="true" />
-        {ubicacion ? "Ubicación adjunta" : "Compartir mi ubicación"}
-      </button>
+      {/* 🔥 NUEVO: Botón de ubicación con estado mejorado */}
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={obtenerUbicacionManual}
+          className="flex items-center gap-1.5 text-sm font-semibold"
+          style={{ color: "var(--color-primary)" }}
+          disabled={obteniendoUbicacion}
+        >
+          <Icon
+            name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"}
+            aria-hidden="true"
+          />
+          {obteniendoUbicacion ? "Obteniendo ubicación..." : ubicacion ? "Actualizar ubicación" : "Compartir mi ubicación"}
+        </button>
+        {ubicacion && (
+          <span className="text-xs font-mono-data" style={{ color: "var(--color-text-muted)" }}>
+            📍 {formatearUbicacion()}
+          </span>
+        )}
+        {obteniendoUbicacion && (
+          <span className="text-xs animate-pulse" style={{ color: "var(--color-prealerta)" }}>
+            Buscando GPS...
+          </span>
+        )}
+      </div>
 
       {avisoEncolado && (
         <p
