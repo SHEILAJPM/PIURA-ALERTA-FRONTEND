@@ -1,31 +1,42 @@
 import React, { Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider } from "./context/ThemeContext";
-import { WebSocketProvider } from "./context/WebSocketContext";
-import { AuthProvider } from "./context/AuthContext";
-import Layout from "./components/Layout";
-import AdminLayout from "./components/AdminLayout";
-import AuthModal from "./components/AuthModal";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Home from "./pages/Home";
-import MiPerfil from "./pages/MiPerfil";
-import RestablecerPassword from "./pages/RestablecerPassword";
-import { ROLES_PANEL_ADMIN } from "./constants/roles";
+import { ThemeProvider } from "./contexto/ThemeContext";
+import { WebSocketProvider } from "./contexto/WebSocketContext";
+import { AuthProvider } from "./contexto/AuthContext";
+import Layout from "./componentes/Layout";
+import AdminLayout from "./componentes/AdminLayout";
+import AuthModal from "./componentes/AuthModal";
+import InvitacionSesion from "./componentes/InvitacionSesion";
+import ProtectedRoute from "./componentes/ProtectedRoute";
+import Home from "./paginas/Home";
+import MiPerfil from "./paginas/MiPerfil";
+import RestablecerPassword from "./paginas/RestablecerPassword";
+import VerificarCorreo from "./paginas/VerificarCorreo";
+import Seguro from "./paginas/Seguro";
+import MiPoliza from "./paginas/MiPoliza";
+import { ROLES_PANEL_ADMIN } from "./constantes/roles";
 
 // Mapa y Reportes cargan Leaflet (pesado) a través de RiesgoMap: lazy para
 // que ese peso no entre en el bundle inicial de Home ni del panel admin.
-const Mapa = React.lazy(() => import("./pages/Mapa"));
-const Reportes = React.lazy(() => import("./pages/Reportes"));
-const Historial = React.lazy(() => import("./pages/Historial"));
-const ModeracionReportes = React.lazy(() => import("./pages/admin/Reportes"));
-const AdminAlbergues = React.lazy(() => import("./pages/admin/Albergues"));
-const CatalogoNodos = React.lazy(() => import("./pages/admin/Sensores"));
-const Telemetria = React.lazy(() => import("./pages/admin/Telemetria"));
-const Calibracion = React.lazy(() => import("./pages/admin/Calibracion"));
-const Usuarios = React.lazy(() => import("./pages/admin/Usuarios"));
-const Auditoria = React.lazy(() => import("./pages/admin/Auditoria"));
-const Tickets = React.lazy(() => import("./pages/admin/Tickets"));
-const Despacho = React.lazy(() => import("./pages/admin/Despacho"));
+const Mapa = React.lazy(() => import("./paginas/Mapa"));
+const Reportes = React.lazy(() => import("./paginas/Reportes"));
+const MisReportes = React.lazy(() => import("./paginas/MisReportes"));
+const Historial = React.lazy(() => import("./paginas/Historial"));
+const ModeracionReportes = React.lazy(() => import("./paginas/admin/Reportes"));
+const AdminAlbergues = React.lazy(() => import("./paginas/admin/Albergues"));
+const CatalogoNodos = React.lazy(() => import("./paginas/admin/Sensores"));
+const Telemetria = React.lazy(() => import("./paginas/admin/Telemetria"));
+const Calibracion = React.lazy(() => import("./paginas/admin/Calibracion"));
+const Usuarios = React.lazy(() => import("./paginas/admin/Usuarios"));
+const Auditoria = React.lazy(() => import("./paginas/admin/Auditoria"));
+const Tickets = React.lazy(() => import("./paginas/admin/Tickets"));
+const Despacho = React.lazy(() => import("./paginas/admin/Despacho"));
+const Polizas = React.lazy(() => import("./paginas/admin/Polizas"));
+const ReclamosSeguro = React.lazy(() => import("./paginas/admin/ReclamosSeguro"));
+const AsistenteFeedback = React.lazy(() => import("./paginas/admin/AsistenteFeedback"));
+const Impacto = React.lazy(() => import("./paginas/admin/Impacto"));
+const ChequeosSeguridad = React.lazy(() => import("./paginas/admin/ChequeosSeguridad"));
+const Configuracion = React.lazy(() => import("./paginas/admin/Configuracion"));
 
 function conSuspenso(elemento) {
   return <Suspense fallback={<div className="p-8 h-150" />}>{elemento}</Suspense>;
@@ -53,8 +64,12 @@ function App() {
                 <Route path="/reportes" element={conSuspenso(<Reportes />)} />
                 <Route path="/historial" element={conSuspenso(<Historial />)} />
                 <Route path="/restablecer-password" element={<RestablecerPassword />} />
+                <Route path="/verificar-correo" element={<VerificarCorreo />} />
+                <Route path="/seguro" element={<Seguro />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/perfil" element={<MiPerfil />} />
+                  <Route path="/mi-poliza" element={<MiPoliza />} />
+                  <Route path="/mis-reportes" element={conSuspenso(<MisReportes />)} />
                 </Route>
               </Route>
 
@@ -70,10 +85,17 @@ function App() {
                   <Route path="auditoria" element={conSuspenso(<Auditoria />)} />
                   <Route path="tickets" element={conSuspenso(<Tickets />)} />
                   <Route path="despacho" element={conSuspenso(<Despacho />)} />
+                  <Route path="polizas" element={conSuspenso(<Polizas />)} />
+                  <Route path="reclamos-seguro" element={conSuspenso(<ReclamosSeguro />)} />
+                  <Route path="asistente" element={conSuspenso(<AsistenteFeedback />)} />
+                  <Route path="impacto" element={conSuspenso(<Impacto />)} />
+                  <Route path="chequeos-seguridad" element={conSuspenso(<ChequeosSeguridad />)} />
+                  <Route path="configuracion" element={conSuspenso(<Configuracion />)} />
                 </Route>
               </Route>
             </Routes>
             <AuthModal />
+            <InvitacionSesion />
           </BrowserRouter>
         </AuthProvider>
       </WebSocketProvider>

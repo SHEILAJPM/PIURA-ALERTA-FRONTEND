@@ -106,3 +106,27 @@ button {
 .animate-pulse-alert {
   animation: pulse-alert 1.8s ease-out infinite;
 }
+
+@keyframes pulse-asistente {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 40%, transparent);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-primary) 0%, transparent);
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-asistente {
+  animation: pulse-asistente 2.4s ease-in-out infinite;
+}
+
+/* Ver RiesgoMap.jsx: solo se aplica sin clave de CARTO en tema oscuro, para
+   que el respaldo de OpenStreetMap (sin variante oscura propia) no se vea
+   como un cuadrado blanco brillante en medio de una página oscura. Toca
+   solo las teselas, nunca los marcadores (otro pane de Leaflet). */
+.mapa-invertido .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+}
