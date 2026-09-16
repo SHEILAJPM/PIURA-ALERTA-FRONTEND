@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSensores } from "../../ganchos/useSensores";
 import { crearSensor, actualizarActivoSensor } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
+import BotonActivo from "../../componentes/admin/BotonActivo";
 import FormularioCreacion from "../../componentes/admin/FormularioCreacion";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
@@ -205,19 +206,7 @@ function FilaSensor({ sensor, onCambiarActivo }) {
         {coordenadas(sensor.ubicacion)}
       </td>
       <td className="pr-5 py-3">
-        <button
-          type="button"
-          onClick={alternar}
-          disabled={cambiando}
-          className="text-xs font-semibold px-3 py-1 rounded-full disabled:opacity-50"
-          style={
-            sensor.activo
-              ? { color: "var(--color-normal)", backgroundColor: "var(--color-normal-soft)" }
-              : { color: "var(--color-text-muted)", backgroundColor: "var(--color-surface-alt)" }
-          }
-        >
-          {cambiando ? "..." : sensor.activo ? "Activo" : "Inactivo"}
-        </button>
+        <BotonActivo activo={sensor.activo} guardando={cambiando} onClick={alternar} />
       </td>
     </tr>
   );

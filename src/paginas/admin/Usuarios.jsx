@@ -3,6 +3,7 @@ import { useAuth } from "../../contexto/AuthContext";
 import { useUsuarios } from "../../ganchos/useUsuarios";
 import { actualizarRolUsuario, actualizarActivoUsuario } from "../../utilidades/api";
 import AdminPageHeader from "../../componentes/admin/AdminPageHeader";
+import BotonActivo from "../../componentes/admin/BotonActivo";
 import RequiereRol from "../../componentes/admin/RequiereRol";
 import Skeleton from "../../componentes/Skeleton";
 import ErrorBanner from "../../componentes/ErrorBanner";
@@ -21,16 +22,21 @@ const ROLES = [
 const FilaUsuario = React.memo(function FilaUsuario({ usuario, esUnoMismo, onCambiarRol, onCambiarActivo }) {
   const [guardandoRol, setGuardandoRol] = useState(false);
   const [guardandoActivo, setGuardandoActivo] = useState(false);
-  const [error, setError] = useState(null);
+  // Separados a propósito: son dos controles distintos en dos columnas
+  // distintas -- un solo estado compartido mostraba el error del botón de
+  // Activo junto al selector de rol (o viceversa), confundiendo cuál acción
+  // realmente falló.
+  const [errorRol, setErrorRol] = useState(null);
+  const [errorActivo, setErrorActivo] = useState(null);
 
   async function manejarCambio(e) {
     const nuevoRol = e.target.value;
     setGuardandoRol(true);
-    setError(null);
+    setErrorRol(null);
     try {
       await onCambiarRol(usuario.id, nuevoRol);
     } catch (err) {
-      setError(err.message);
+      setErrorRol(err.message);
     } finally {
       setGuardandoRol(false);
     }
@@ -38,11 +44,11 @@ const FilaUsuario = React.memo(function FilaUsuario({ usuario, esUnoMismo, onCam
 
   async function alternarActivo() {
     setGuardandoActivo(true);
-    setError(null);
+    setErrorActivo(null);
     try {
       await onCambiarActivo(usuario.id, !usuario.activo);
     } catch (err) {
-      setError(err.message);
+      setErrorActivo(err.message);
     } finally {
       setGuardandoActivo(false);
     }
@@ -60,20 +66,19 @@ const FilaUsuario = React.memo(function FilaUsuario({ usuario, esUnoMismo, onCam
         {formatearFecha(usuario.creado_en)}
       </td>
       <td className="pr-4 py-3 text-right">
-        <button
-          type="button"
-          onClick={alternarActivo}
-          disabled={guardandoActivo || esUnoMismo}
+        <BotonActivo
+          activo={usuario.activo}
+          guardando={guardandoActivo}
+          disabled={esUnoMismo}
           title={esUnoMismo ? "No puedes desactivar tu propia cuenta" : undefined}
-          className="text-xs font-semibold px-3 py-1 rounded-full disabled:opacity-50"
-          style={
-            usuario.activo
-              ? { color: "var(--color-normal)", backgroundColor: "var(--color-normal-soft)" }
-              : { color: "var(--color-text-muted)", backgroundColor: "var(--color-surface-alt)" }
-          }
-        >
-          {guardandoActivo ? "..." : usuario.activo ? "Activo" : "Desactivado"}
-        </button>
+          etiquetaInactivo="Desactivado"
+          onClick={alternarActivo}
+        />
+        {errorActivo && (
+          <p className="text-xs mt-1" style={{ color: "var(--color-alerta)" }}>
+            {errorActivo}
+          </p>
+        )}
       </td>
       <td className="pr-5 py-3 text-right">
         <select
@@ -93,9 +98,9 @@ const FilaUsuario = React.memo(function FilaUsuario({ usuario, esUnoMismo, onCam
             </option>
           ))}
         </select>
-        {error && (
+        {errorRol && (
           <p className="text-xs mt-1" style={{ color: "var(--color-alerta)" }}>
-            {error}
+            {errorRol}
           </p>
         )}
       </td>
