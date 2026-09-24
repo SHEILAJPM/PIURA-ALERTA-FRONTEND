@@ -28,12 +28,29 @@ describe("obtenerPuntosAyuda", () => {
 
   it("un nodo (hospital) usa lat/lon directo", async () => {
     mockFetchOnce(200, {
-      elements: [{ type: "node", id: 1, lat: -5.19, lon: -80.63, tags: { amenity: "hospital", name: "Hospital Regional" } }],
+      elements: [
+        {
+          type: "node",
+          id: 1,
+          lat: -5.19,
+          lon: -80.63,
+          tags: { amenity: "hospital", name: "Hospital Regional" },
+        },
+      ],
     });
     const puntos = await obtenerPuntosAyuda();
 
     expect(puntos).toEqual([
-      { id: "node/1", tipo: "hospital", etiqueta: "Posta médica / hospital", letra: "H", color: "#c1272d", nombre: "Hospital Regional", lat: -5.19, lon: -80.63 },
+      {
+        id: "node/1",
+        tipo: "hospital",
+        etiqueta: "Posta médica / hospital",
+        letra: "H",
+        color: "#c1272d",
+        nombre: "Hospital Regional",
+        lat: -5.19,
+        lon: -80.63,
+      },
     ]);
   });
 
@@ -44,13 +61,24 @@ describe("obtenerPuntosAyuda", () => {
     const puntos = await obtenerPuntosAyuda();
 
     expect(puntos).toEqual([
-      { id: "way/2", tipo: "police", etiqueta: "Comisaría", letra: "P", color: "#0a2f52", nombre: "Comisaría", lat: -5.2, lon: -80.6 },
+      {
+        id: "way/2",
+        tipo: "police",
+        etiqueta: "Comisaría",
+        letra: "P",
+        color: "#0a2f52",
+        nombre: "Comisaría",
+        lat: -5.2,
+        lon: -80.6,
+      },
     ]);
   });
 
   it("ignora elementos con un amenity que no es hospital/police/fire_station", async () => {
     mockFetchOnce(200, {
-      elements: [{ type: "node", id: 3, lat: -5.19, lon: -80.63, tags: { amenity: "school", name: "Colegio" } }],
+      elements: [
+        { type: "node", id: 3, lat: -5.19, lon: -80.63, tags: { amenity: "school", name: "Colegio" } },
+      ],
     });
     const puntos = await obtenerPuntosAyuda();
     expect(puntos).toEqual([]);

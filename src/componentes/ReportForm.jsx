@@ -179,8 +179,8 @@ function ReportForm({ onEnviar, enviando }) {
           style={{ backgroundColor: "var(--color-alerta-soft)", color: "var(--color-alerta)" }}
         >
           <Icon name="bi-robot" aria-hidden="true" />
-          Tu foto o descripción no parecen estar relacionadas con una inundación, así que no se publicó.
-          Si crees que es un error, vuelve a intentarlo con una foto más clara.
+          Tu foto o descripción no parecen estar relacionadas con una inundación, así que no se publicó. Si
+          crees que es un error, vuelve a intentarlo con una foto más clara.
         </p>
       )}
 

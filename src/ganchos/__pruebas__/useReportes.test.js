@@ -90,7 +90,9 @@ describe("useReportes: confirmarReporte", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("actualiza confirmaciones_count y tu_confirmaste del reporte confirmado", async () => {
-    api.getReportes.mockResolvedValue([{ ...reporte(1, "2024-01-01"), confirmaciones_count: 0, tu_confirmaste: false }]);
+    api.getReportes.mockResolvedValue([
+      { ...reporte(1, "2024-01-01"), confirmaciones_count: 0, tu_confirmaste: false },
+    ]);
     const { result } = renderHook(() => useReportes(30));
     await waitFor(() => expect(result.current.loading).toBe(false));
 

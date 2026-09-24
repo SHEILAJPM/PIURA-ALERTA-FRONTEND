@@ -13,17 +13,20 @@ const BENEFICIOS = [
   {
     icono: "bi-water",
     titulo: "Reportas el daño con fotos",
-    texto: "Si el río daña tu casa o tus cosas durante tu cobertura, cuéntanos qué pasó y adjunta fotos desde \"Mi póliza\".",
+    texto:
+      'Si el río daña tu casa o tus cosas durante tu cobertura, cuéntanos qué pasó y adjunta fotos desde "Mi póliza".',
   },
   {
     icono: "bi-person-badge",
     titulo: "Un administrador lo revisa",
-    texto: "Cada caso se evalúa por separado — no es un monto automático, alguien del equipo mira tu reporte y decide cuánto reconocer.",
+    texto:
+      "Cada caso se evalúa por separado — no es un monto automático, alguien del equipo mira tu reporte y decide cuánto reconocer.",
   },
   {
     icono: "bi-heart-fill",
     titulo: "Reconocimiento hasta un tope",
-    texto: "El monto aprobado depende del daño, hasta el tope de tu plan (ver cada tarjeta abajo). El pago se coordina aparte, por Yape o transferencia.",
+    texto:
+      "El monto aprobado depende del daño, hasta el tope de tu plan (ver cada tarjeta abajo). El pago se coordina aparte, por Yape o transferencia.",
   },
 ];
 
@@ -136,9 +139,9 @@ function Seguro() {
         </p>
         <h2 className="text-3xl md:text-4xl font-bold mt-2">Cobertura contra inundaciones</h2>
         <p className="mt-3 max-w-2xl" style={{ color: "var(--color-text-muted)" }}>
-          Paga por adelantado el periodo que prefieras. Si el río daña tu casa o tus cosas mientras tu
-          póliza esté vigente, reporta el daño con fotos y el equipo evalúa cuánto reconocerte, hasta el
-          tope de tu plan.
+          Paga por adelantado el periodo que prefieras. Si el río daña tu casa o tus cosas mientras tu póliza
+          esté vigente, reporta el daño con fotos y el equipo evalúa cuánto reconocerte, hasta el tope de tu
+          plan.
         </p>
       </section>
 

@@ -70,12 +70,12 @@ function ReportCard({ reporte, onReaccion, distanciaKm }) {
 
   return (
     <article
-      className={`rounded-2xl border overflow-hidden ${reporte.estado === "verificado" ? "border-green-400 dark:border-green-600" : ""
-        } ${reporte.estado === "en_progreso" ? "border-blue-400 dark:border-blue-600" : ""
-        }`}
+      className={`rounded-2xl border overflow-hidden ${
+        reporte.estado === "verificado" ? "border-green-400 dark:border-green-600" : ""
+      } ${reporte.estado === "en_progreso" ? "border-blue-400 dark:border-blue-600" : ""}`}
       style={{
         backgroundColor: "var(--color-surface)",
-        borderColor: "var(--color-border)"
+        borderColor: "var(--color-border)",
       }}
     >
       <header className="flex items-center gap-3 px-4 py-3">
@@ -132,10 +132,11 @@ function ReportCard({ reporte, onReaccion, distanciaKm }) {
           onClick={() => manejarReaccion("util")}
           disabled={enviandoReaccion}
           aria-label="Marcar como útil"
-          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "util"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+            reaccionUsuario === "util"
               ? "border-green-500 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300"
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
+          }`}
         >
           👍 Útil {contadorUtil > 0 && `(${contadorUtil})`}
         </button>
@@ -145,10 +146,11 @@ function ReportCard({ reporte, onReaccion, distanciaKm }) {
           onClick={() => manejarReaccion("alerta")}
           disabled={enviandoReaccion}
           aria-label="Marcar como alerta"
-          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "alerta"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+            reaccionUsuario === "alerta"
               ? "border-red-500 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300"
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
+          }`}
         >
           🚨 Alerta {contadorAlerta > 0 && `(${contadorAlerta})`}
         </button>
@@ -158,10 +160,11 @@ function ReportCard({ reporte, onReaccion, distanciaKm }) {
           onClick={() => manejarReaccion("confirmo")}
           disabled={enviandoReaccion}
           aria-label="Confirmar situación"
-          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${reaccionUsuario === "confirmo"
+          className={`disabled:opacity-60 transition-transform active:scale-90 px-3 py-1.5 rounded-lg text-xs font-semibold border ${
+            reaccionUsuario === "confirmo"
               ? "border-blue-500 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
               : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
+          }`}
         >
           ✅ Confirmo {contadorConfirmo > 0 && `(${contadorConfirmo})`}
         </button>

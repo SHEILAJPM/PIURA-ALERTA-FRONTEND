@@ -95,7 +95,11 @@ function ReclamoSeguroForm({ onEnviar }) {
       </p>
 
       <div>
-        <label htmlFor="reclamo-fecha" className="text-xs font-semibold" style={{ color: "var(--color-text-muted)" }}>
+        <label
+          htmlFor="reclamo-fecha"
+          className="text-xs font-semibold"
+          style={{ color: "var(--color-text-muted)" }}
+        >
           Fecha del daño
         </label>
         <input

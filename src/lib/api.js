@@ -99,7 +99,7 @@ export function desuscribirPush(endpoint) {
   });
 }
 
-export function enviarNotificacionPrueba(tipo = 'general') {
+export function enviarNotificacionPrueba(tipo = "general") {
   return apiFetch("/api/push/probar", {
     method: "POST",
     body: JSON.stringify({ tipo }),
