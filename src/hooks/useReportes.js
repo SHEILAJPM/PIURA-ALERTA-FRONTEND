@@ -1,16 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  getReportes,
-  crearReporte,
-  reaccionarReporte,
-  actualizarEstadoReporte,
-} from "../lib/api";
+import { getReportes, crearReporte, reaccionarReporte, actualizarEstadoReporte } from "../lib/api";
 import { useWebSocketEvent } from "../context/WebSocketContext";
-import {
-  encolarReporte,
-  contarPendientes,
-  reintentarColaReportes,
-} from "../lib/colaOffline";
+import { encolarReporte, contarPendientes, reintentarColaReportes } from "../lib/colaOffline";
 
 export function useReportes(limite = 30) {
   const [reportes, setReportes] = useState([]);
@@ -51,26 +42,22 @@ export function useReportes(limite = 30) {
               reacciones_confirmo: payload.reacciones_confirmo,
               reaccion_usuario: payload.reaccion_usuario,
             }
-          : reporte,
-      ),
+          : reporte
+      )
     );
   });
 
   useWebSocketEvent("reporte_estado_actualizado", (payload) => {
     setReportes((prev) =>
       prev.map((reporte) =>
-        reporte.id === payload.reporte_id
-          ? { ...reporte, estado: payload.estado }
-          : reporte,
-      ),
+        reporte.id === payload.reporte_id ? { ...reporte, estado: payload.estado } : reporte
+      )
     );
   });
 
   useEffect(() => {
     function reintentar() {
-      reintentarColaReportes(crearReporte).then(() =>
-        setPendientes(contarPendientes()),
-      );
+      reintentarColaReportes(crearReporte).then(() => setPendientes(contarPendientes()));
     }
     reintentar();
     window.addEventListener("online", reintentar);
@@ -108,19 +95,15 @@ export function useReportes(limite = 30) {
               reacciones_confirmo: resultado.reacciones_confirmo,
               reaccion_usuario: resultado.reaccion_usuario,
             }
-          : reporte,
-      ),
+          : reporte
+      )
     );
   }, []);
 
   const actualizarEstado = useCallback(async (reporteId, estado) => {
     const resultado = await actualizarEstadoReporte(reporteId, estado);
     setReportes((prev) =>
-      prev.map((reporte) =>
-        reporte.id === reporteId
-          ? { ...reporte, estado: resultado.estado }
-          : reporte,
-      ),
+      prev.map((reporte) => (reporte.id === reporteId ? { ...reporte, estado: resultado.estado } : reporte))
     );
   }, []);
 

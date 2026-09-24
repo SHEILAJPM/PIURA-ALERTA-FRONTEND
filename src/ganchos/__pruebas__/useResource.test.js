@@ -31,7 +31,10 @@ describe("useResource", () => {
   it("una respuesta vieja no pisa una más nueva cuando cambian las deps antes de que resuelva", async () => {
     const primeraLlamada = diferir();
     const segundaLlamada = diferir();
-    const fetchFn = vi.fn().mockReturnValueOnce(primeraLlamada.promesa).mockReturnValueOnce(segundaLlamada.promesa);
+    const fetchFn = vi
+      .fn()
+      .mockReturnValueOnce(primeraLlamada.promesa)
+      .mockReturnValueOnce(segundaLlamada.promesa);
 
     const { result, rerender } = renderHook(({ dep }) => useResource(fetchFn, [dep]), {
       initialProps: { dep: "a" },
