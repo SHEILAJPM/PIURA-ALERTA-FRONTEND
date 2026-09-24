@@ -13,7 +13,7 @@ Desplegar ese primero, o al menos tenerlo corriendo en algún lado, antes de est
 ## 1. Crear la cuenta de Cloudinary (subida de fotos en reportes)
 
 Los reportes ciudadanos suben fotos directo desde el navegador a Cloudinary
-(`src/lib/cloudinary.js`) — el backend nunca recibe el archivo, solo la URL
+(`src/utilidades/cloudinary.js`) — el backend nunca recibe el archivo, solo la URL
 resultante. Sin esto configurado, publicar un reporte **con foto** falla (sin
 foto sigue funcionando igual).
 

@@ -32,7 +32,7 @@ export default [
     },
   },
   {
-    files: ["**/*.test.{js,jsx}", "src/test/**"],
+    files: ["**/*.test.{js,jsx}", "src/pruebas/**"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
