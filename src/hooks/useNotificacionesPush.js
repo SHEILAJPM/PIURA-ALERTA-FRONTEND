@@ -22,9 +22,9 @@ export function useNotificacionesPush() {
       setCargando(false);
       return;
     }
-    
+
     setPermiso(Notification.permission);
-    
+
     navigator.serviceWorker.ready
       .then((registro) => registro.pushManager.getSubscription())
       .then((sub) => setSuscrito(sub != null))
@@ -39,7 +39,7 @@ export function useNotificacionesPush() {
     try {
       const permiso = await Notification.requestPermission();
       setPermiso(permiso);
-      
+
       if (permiso !== "granted") {
         setError("No diste permiso para las notificaciones en el navegador.");
         return;
@@ -61,11 +61,13 @@ export function useNotificacionesPush() {
 
       await suscribirPush(suscripcion.toJSON());
       setSuscrito(true);
-      
-      if ('serviceWorker' in navigator && 'SyncManager' in window) {
+
+      if ("serviceWorker" in navigator && "SyncManager" in window) {
         try {
-          await registro.sync.register('sync-reportes');
-        } catch {}
+          await registro.sync.register("sync-reportes");
+        } catch {
+          console.error("No se pudo registrar la sincronización.");
+        }
       }
     } catch (err) {
       setError(err.message);
@@ -93,56 +95,56 @@ export function useNotificacionesPush() {
     }
   }
 
-  async function probarNotificacion(tipo = 'general') {
+  async function probarNotificacion(tipo = "general") {
     if (!suscrito) {
-      setError('Primero debes activar las notificaciones.');
+      setError("Primero debes activar las notificaciones.");
       return;
     }
 
     try {
       const registro = await navigator.serviceWorker.ready;
-      
+
       const mensajes = {
         alerta_roja: {
-          titulo: '🚨 ALERTA ROJA - Prueba',
-          cuerpo: 'Esta es una notificación de prueba para alerta roja.',
+          titulo: "🚨 ALERTA ROJA - Prueba",
+          cuerpo: "Esta es una notificación de prueba para alerta roja.",
         },
         reporte_verificado: {
-          titulo: '✅ Reporte verificado',
-          cuerpo: 'Tu reporte cercano ha sido verificado por Defensa Civil.',
+          titulo: "✅ Reporte verificado",
+          cuerpo: "Tu reporte cercano ha sido verificado por Defensa Civil.",
         },
         general: {
-          titulo: '🔔 Piura Alerta',
-          cuerpo: 'Las notificaciones funcionan correctamente.',
+          titulo: "🔔 Piura Alerta",
+          cuerpo: "Las notificaciones funcionan correctamente.",
         },
       };
 
       const msg = mensajes[tipo] || mensajes.general;
-      
+
       await registro.showNotification(msg.titulo, {
         body: msg.cuerpo,
-        icon: '/pwa-192.png',
-        badge: '/pwa-192.png',
+        icon: "/pwa-192.png",
+        badge: "/pwa-192.png",
         tag: `test-${Date.now()}`,
         vibrate: [100, 50, 100],
-        data: { url: '/' },
+        data: { url: "/" },
       });
-      
+
       return true;
     } catch (err) {
-      setError('No se pudo enviar la notificación de prueba.');
+      setError("No se pudo enviar la notificación de prueba.");
       return false;
     }
   }
 
-  return { 
-    soportado: SOPORTADO, 
-    suscrito, 
-    cargando, 
-    procesando, 
-    error, 
+  return {
+    soportado: SOPORTADO,
+    suscrito,
+    cargando,
+    procesando,
+    error,
     permiso,
-    activar, 
+    activar,
     desactivar,
     probarNotificacion,
   };
