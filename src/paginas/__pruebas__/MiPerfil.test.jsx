@@ -76,10 +76,7 @@ describe("MiPerfil: verificación de correo y mis reportes", () => {
     renderPerfil();
 
     await waitFor(() =>
-      expect(screen.getByRole("link", { name: "Ver mis reportes" })).toHaveAttribute(
-        "href",
-        "/mis-reportes"
-      )
+      expect(screen.getByRole("link", { name: "Ver mis reportes" })).toHaveAttribute("href", "/mis-reportes")
     );
   });
 });

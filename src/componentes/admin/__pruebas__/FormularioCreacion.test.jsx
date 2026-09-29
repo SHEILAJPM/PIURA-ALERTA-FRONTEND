@@ -6,7 +6,9 @@ function renderFormulario({ validar, onCrear } = {}) {
   return render(
     <FormularioCreacion
       camposIniciales={{ nombre: "" }}
-      validar={validar ?? ((v) => (v.nombre.trim() ? { datos: { nombre: v.nombre } } : { error: "Falta el nombre" }))}
+      validar={
+        validar ?? ((v) => (v.nombre.trim() ? { datos: { nombre: v.nombre } } : { error: "Falta el nombre" }))
+      }
       onCrear={onCrear ?? vi.fn().mockResolvedValue()}
       textoBoton="Agregar cosa"
       textoGuardar="Guardar"

@@ -3,14 +3,14 @@ import Icon from "./Icon";
 import { useState } from "react";
 
 function NotificacionesToggle() {
-  const { 
-    soportado, 
-    suscrito, 
-    cargando, 
-    procesando, 
-    error, 
+  const {
+    soportado,
+    suscrito,
+    cargando,
+    procesando,
+    error,
     permiso,
-    activar, 
+    activar,
     desactivar,
     probarNotificacion,
   } = useNotificacionesPush();
@@ -30,7 +30,7 @@ function NotificacionesToggle() {
 
   const manejarProbar = async () => {
     setProbando(true);
-    await probarNotificacion('general');
+    await probarNotificacion("general");
     setTimeout(() => setProbando(false), 2000);
   };
 
@@ -51,23 +51,27 @@ function NotificacionesToggle() {
         }
       >
         <Icon name={suscrito ? "bi-bell-fill" : "bi-bell"} aria-hidden="true" />
-        {permiso === 'denied' && (
-          <span 
+        {permiso === "denied" && (
+          <span
             className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"
             title="Permiso denegado"
           />
         )}
         {procesando && (
           <span className="absolute inset-0 flex items-center justify-center">
-            <span className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin" 
-                  style={{ borderColor: suscrito ? 'var(--color-brand-chrome)' : '#fff' }} />
+            <span
+              className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+              style={{ borderColor: suscrito ? "var(--color-brand-chrome)" : "#fff" }}
+            />
           </span>
         )}
       </button>
 
       {suscrito && (
-        <div className="absolute right-0 mt-2 w-48 rounded-lg border shadow-lg z-50 overflow-hidden"
-             style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}>
+        <div
+          className="absolute right-0 mt-2 w-48 rounded-lg border shadow-lg z-50 overflow-hidden"
+          style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
+        >
           <button
             onClick={() => {
               setMostrandoMenu(false);
@@ -77,7 +81,7 @@ function NotificacionesToggle() {
             className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition"
             style={{ color: "var(--color-text)" }}
           >
-            {probando ? 'Enviando prueba...' : '🔔 Probar notificación'}
+            {probando ? "Enviando prueba..." : "🔔 Probar notificación"}
           </button>
           <button
             onClick={() => {
@@ -93,8 +97,14 @@ function NotificacionesToggle() {
       )}
 
       {error && (
-        <div className="absolute right-0 mt-2 w-64 p-3 rounded-lg border text-sm z-50"
-             style={{ backgroundColor: "var(--color-alerta-soft)", borderColor: "var(--color-alerta)", color: "var(--color-alerta)" }}>
+        <div
+          className="absolute right-0 mt-2 w-64 p-3 rounded-lg border text-sm z-50"
+          style={{
+            backgroundColor: "var(--color-alerta-soft)",
+            borderColor: "var(--color-alerta)",
+            color: "var(--color-alerta)",
+          }}
+        >
           {error}
         </div>
       )}

@@ -120,11 +120,7 @@ function HistoriaModal({ historias, indiceInicial, onCerrar }) {
           </button>
         </div>
 
-        <img
-          src={historia.foto_url}
-          alt={historia.descripcion}
-          className="w-full h-full object-contain"
-        />
+        <img src={historia.foto_url} alt={historia.descripcion} className="w-full h-full object-contain" />
 
         {/* Zonas de toque para navegar, entre la imagen (z-0) y los controles
             (z-10) -- si fueran el último hijo taparían el botón de cerrar. */}

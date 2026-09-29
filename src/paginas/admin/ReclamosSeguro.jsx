@@ -141,7 +141,8 @@ function TarjetaReclamo({ reclamo, onRevisar }) {
             {reclamo.usuario_correo} · plan de {reclamo.meses} {reclamo.meses === 1 ? "mes" : "meses"}
           </p>
           <p className="text-xs mt-0.5" style={{ color: "var(--color-text-muted)" }}>
-            Daño del {formatearFecha(reclamo.fecha_dano)} · reclamado el {formatearFechaHora(reclamo.creado_en)}
+            Daño del {formatearFecha(reclamo.fecha_dano)} · reclamado el{" "}
+            {formatearFechaHora(reclamo.creado_en)}
           </p>
         </div>
         <span
@@ -158,7 +159,12 @@ function TarjetaReclamo({ reclamo, onRevisar }) {
         <div className="mt-3 grid grid-cols-3 gap-2">
           {reclamo.foto_urls.map((url) => (
             <a key={url} href={url} target="_blank" rel="noreferrer">
-              <img src={url} alt="Foto del daño" loading="lazy" className="w-full h-24 object-cover rounded-lg" />
+              <img
+                src={url}
+                alt="Foto del daño"
+                loading="lazy"
+                className="w-full h-24 object-cover rounded-lg"
+              />
             </a>
           ))}
         </div>
@@ -213,7 +219,9 @@ function TarjetaReclamo({ reclamo, onRevisar }) {
           tope={reclamo.tope_indemnizacion_centavos}
           enviando={enviando}
           onCancelar={() => setPanel(null)}
-          onConfirmar={(monto_aprobado_centavos) => confirmar({ estado: "aprobado", monto_aprobado_centavos })}
+          onConfirmar={(monto_aprobado_centavos) =>
+            confirmar({ estado: "aprobado", monto_aprobado_centavos })
+          }
         />
       )}
       {panel === "rechazar" && (
@@ -267,7 +275,10 @@ function ReclamosSeguro() {
           <div className="space-y-6">
             {pendientes.length > 0 && (
               <div>
-                <h3 className="font-bold text-sm uppercase tracking-wide mb-3" style={{ color: "var(--color-prealerta)" }}>
+                <h3
+                  className="font-bold text-sm uppercase tracking-wide mb-3"
+                  style={{ color: "var(--color-prealerta)" }}
+                >
                   Pendientes ({pendientes.length})
                 </h3>
                 <div className="space-y-4">
@@ -279,7 +290,10 @@ function ReclamosSeguro() {
             )}
             {resueltos.length > 0 && (
               <div>
-                <h3 className="font-bold text-sm uppercase tracking-wide mb-3" style={{ color: "var(--color-text-muted)" }}>
+                <h3
+                  className="font-bold text-sm uppercase tracking-wide mb-3"
+                  style={{ color: "var(--color-text-muted)" }}
+                >
                   Resueltos
                 </h3>
                 <div className="space-y-4">

@@ -114,15 +114,18 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
 
   return (
     <article
-      className={`rounded-2xl border p-5 transition-all ${reporte.estado === 'pendiente' ? 'border-yellow-200 dark:border-yellow-800' : ''
-        } ${reporte.estado === 'en_progreso' ? 'border-blue-200 dark:border-blue-800' : ''
-        }`}
+      className={`rounded-2xl border p-5 transition-all ${
+        reporte.estado === "pendiente" ? "border-yellow-200 dark:border-yellow-800" : ""
+      } ${reporte.estado === "en_progreso" ? "border-blue-200 dark:border-blue-800" : ""}`}
       style={{ backgroundColor: "var(--color-surface)", borderColor: "var(--color-border)" }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <img
-            src={reporte.usuario_foto_url || `https://ui-avatars.com/api/?name=${reporte.usuario_nombre}&background=0a2f52&color=fff&size=32`}
+            src={
+              reporte.usuario_foto_url ||
+              `https://ui-avatars.com/api/?name=${reporte.usuario_nombre}&background=0a2f52&color=fff&size=32`
+            }
             alt={`Foto de ${reporte.usuario_nombre}`}
             className="w-8 h-8 rounded-full"
           />
@@ -131,7 +134,10 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
             <div className="flex items-center gap-2 text-xs" style={{ color: "var(--color-text-muted)" }}>
               <span>{formatearFecha(reporte.creado_en)}</span>
               {reporte.ubicacion?.coordinates && (
-                <span>· 📍 {reporte.ubicacion.coordinates[1].toFixed(4)}, {reporte.ubicacion.coordinates[0].toFixed(4)}</span>
+                <span>
+                  · 📍 {reporte.ubicacion.coordinates[1].toFixed(4)},{" "}
+                  {reporte.ubicacion.coordinates[0].toFixed(4)}
+                </span>
               )}
             </div>
           </div>
@@ -184,7 +190,7 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
 
       {/* Acciones de Moderación */}
       <div className="mt-4 flex gap-2 border-t pt-4 flex-wrap" style={{ borderColor: "var(--color-border)" }}>
-        {reporte.estado === 'pendiente' && (
+        {reporte.estado === "pendiente" && (
           <>
             <button
               type="button"
@@ -215,7 +221,7 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
             </button>
           </>
         )}
-        {reporte.estado === 'en_progreso' && (
+        {reporte.estado === "en_progreso" && (
           <>
             <button
               type="button"
@@ -237,12 +243,12 @@ const ReporteModeracion = React.memo(function ReporteModeracion({ reporte, proce
             </button>
           </>
         )}
-        {reporte.estado === 'verificado' && (
+        {reporte.estado === "verificado" && (
           <span className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
             ✅ Este reporte ya fue verificado
           </span>
         )}
-        {reporte.estado === 'descartado' && (
+        {reporte.estado === "descartado" && (
           <span className="text-sm font-medium" style={{ color: "var(--color-text-muted)" }}>
             🗑️ Este reporte fue descartado
           </span>

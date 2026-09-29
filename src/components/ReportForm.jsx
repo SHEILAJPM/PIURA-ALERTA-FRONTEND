@@ -50,7 +50,7 @@ function ReportForm({ onEnviar, enviando }) {
         maximumAge: 60000, // 1 minuto de caché
       }
     );
-  }, []); 
+  }, []);
 
   function obtenerUbicacionManual() {
     if (!navigator.geolocation) {
@@ -200,11 +200,12 @@ function ReportForm({ onEnviar, enviando }) {
           style={{ color: "var(--color-primary)" }}
           disabled={obteniendoUbicacion}
         >
-          <Icon
-            name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"}
-            aria-hidden="true"
-          />
-          {obteniendoUbicacion ? "Obteniendo ubicación..." : ubicacion ? "Actualizar ubicación" : "Compartir mi ubicación"}
+          <Icon name={ubicacion ? "bi-geo-alt-fill" : "bi-geo-alt"} aria-hidden="true" />
+          {obteniendoUbicacion
+            ? "Obteniendo ubicación..."
+            : ubicacion
+              ? "Actualizar ubicación"
+              : "Compartir mi ubicación"}
         </button>
         {ubicacion && (
           <span className="text-xs font-mono-data" style={{ color: "var(--color-text-muted)" }}>

@@ -5,9 +5,12 @@ const { obtenerTokenGuardado, dispararSesionExpirada } = vi.hoisted(() => ({
   dispararSesionExpirada: vi.fn(),
 }));
 
-vi.mock("../../context/AuthContext", () => ({ obtenerTokenGuardado, dispararSesionExpirada }));
+vi.mock("../../context/AuthContext", () => ({
+  obtenerTokenGuardado,
+  dispararSesionExpirada,
+}));
 
-const { iniciarSesion, getUsuarios, getSensores } = await import("../api.js");
+const { iniciarSesion, getSensores } = await import("../api.js");
 
 function mockFetchOnce(status, body) {
   global.fetch = vi.fn().mockResolvedValue({
@@ -17,7 +20,7 @@ function mockFetchOnce(status, body) {
   });
 }
 
-describe("apiFetch (a través de getSensores/darLike)", () => {
+describe("apiFetch (a través de iniciarSesion/getSensores)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -29,6 +32,7 @@ describe("apiFetch (a través de getSensores/darLike)", () => {
     await expect(iniciarSesion({ correo: "x@x.com", password: "mal" })).rejects.toThrow(
       "Correo o contraseña incorrectos"
     );
+
     expect(dispararSesionExpirada).not.toHaveBeenCalled();
   });
 
@@ -36,7 +40,8 @@ describe("apiFetch (a través de getSensores/darLike)", () => {
     obtenerTokenGuardado.mockReturnValue("token-viejo");
     mockFetchOnce(401, { error: "Sesión inválida o expirada" });
 
-    await expect(getUsuarios()).rejects.toThrow("Sesión inválida o expirada");
+    await expect(getSensores()).rejects.toThrow("Sesión inválida o expirada");
+
     expect(dispararSesionExpirada).toHaveBeenCalledTimes(1);
   });
 
@@ -44,7 +49,8 @@ describe("apiFetch (a través de getSensores/darLike)", () => {
     obtenerTokenGuardado.mockReturnValue("token-valido");
     mockFetchOnce(403, { error: "No tenés permiso para esta acción" });
 
-    await expect(getUsuarios()).rejects.toThrow("No tenés permiso para esta acción");
+    await expect(getSensores()).rejects.toThrow("No tenés permiso para esta acción");
+
     expect(dispararSesionExpirada).not.toHaveBeenCalled();
   });
 

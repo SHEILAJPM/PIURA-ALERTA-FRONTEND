@@ -99,7 +99,11 @@ export function useReportes(limite = 30, { incluirArchivados = false, soloMios =
     setReportes((prev) =>
       prev.map((reporte) =>
         reporte.id === reporteId
-          ? { ...reporte, confirmaciones_count: resultado.confirmaciones_count, tu_confirmaste: resultado.tu_confirmaste }
+          ? {
+              ...reporte,
+              confirmaciones_count: resultado.confirmaciones_count,
+              tu_confirmaste: resultado.tu_confirmaste,
+            }
           : reporte
       )
     );

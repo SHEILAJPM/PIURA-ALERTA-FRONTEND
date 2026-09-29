@@ -3,7 +3,12 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../contexto/AuthContext";
 import { useResource } from "../ganchos/useResource";
 import { useSensores } from "../ganchos/useSensores";
-import { obtenerPerfil, actualizarPerfil, cambiarPassword, reenviarVerificacionCorreo } from "../utilidades/api";
+import {
+  obtenerPerfil,
+  actualizarPerfil,
+  cambiarPassword,
+  reenviarVerificacionCorreo,
+} from "../utilidades/api";
 import Avatar from "../componentes/Avatar";
 import Icon from "../componentes/Icon";
 import Skeleton from "../componentes/Skeleton";

@@ -46,10 +46,7 @@ function ChequeosSeguridad() {
 
   return (
     <RequiereRol roles={ROLES_DEFENSA_CIVIL}>
-      <AdminPageHeader
-        titulo="CHEQUEOS DE SEGURIDAD"
-        subtitulo="QUIÉN AVISÓ QUE ESTÁ A SALVO"
-      />
+      <AdminPageHeader titulo="CHEQUEOS DE SEGURIDAD" subtitulo="QUIÉN AVISÓ QUE ESTÁ A SALVO" />
 
       <div className="p-4 sm:p-8">
         {error && (
@@ -67,10 +64,7 @@ function ChequeosSeguridad() {
         ) : !ciudadanos || ciudadanos.length === 0 ? (
           <p style={{ color: "var(--color-text-muted)" }}>Todavía no hay ciudadanos registrados.</p>
         ) : (
-          <div
-            className="rounded-2xl border overflow-hidden"
-            style={{ borderColor: "var(--color-border)" }}
-          >
+          <div className="rounded-2xl border overflow-hidden" style={{ borderColor: "var(--color-border)" }}>
             <table className="w-full text-sm">
               <thead>
                 <tr

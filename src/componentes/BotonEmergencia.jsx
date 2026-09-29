@@ -70,10 +70,7 @@ function BotonSOS() {
   return (
     <div className="mb-4">
       {estado === "confirmando" ? (
-        <div
-          className="rounded-xl p-4"
-          style={{ backgroundColor: "var(--color-alerta-soft)" }}
-        >
+        <div className="rounded-xl p-4" style={{ backgroundColor: "var(--color-alerta-soft)" }}>
           <p className="text-sm font-semibold mb-3" style={{ color: "var(--color-alerta)" }}>
             ¿Confirmas que necesitas ayuda ahora? Vamos a mandar tu ubicación exacta a Defensa Civil.
           </p>

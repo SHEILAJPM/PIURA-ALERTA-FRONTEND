@@ -76,7 +76,13 @@ export function getZonasRiesgo() {
   return apiFetch("/api/zonas-riesgo");
 }
 
-export function getReportes({ limite = 30, conFoto = false, antes, incluirArchivados = false, soloMios = false } = {}) {
+export function getReportes({
+  limite = 30,
+  conFoto = false,
+  antes,
+  incluirArchivados = false,
+  soloMios = false,
+} = {}) {
   const params = new URLSearchParams({ limite: String(limite), conFoto: String(conFoto) });
   if (antes) params.set("antes", antes);
   // Solo tiene efecto para un administrador (ver GET /api/reportes-ciudadanos);

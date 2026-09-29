@@ -112,3 +112,15 @@ Cloudinary y variables de entorno de producción).
 - Visualización de albergues.
 - Reportes.
 - Comunicación en tiempo real.
+
+## 🌊 PIURA ALERTA
+
+El sistema está orientado a la prevención y monitoreo de posibles
+inundaciones en la ciudad de Piura, brindando información sobre el
+estado del río, zonas de riesgo y alertas para la población.
+
+### 👨‍💻 Desarrollo Frontend
+
+El frontend fue desarrollado utilizando React y Vite, buscando una
+interfaz sencilla, responsive e intuitiva para facilitar el acceso
+a la información de prevención.

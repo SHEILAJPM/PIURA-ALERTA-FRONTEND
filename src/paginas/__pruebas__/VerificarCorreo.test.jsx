@@ -37,9 +37,7 @@ describe("VerificarCorreo", () => {
     verificarCorreo.mockRejectedValue(new Error("El enlace no es válido o ya expiró"));
     renderConToken("vencido");
 
-    await waitFor(() =>
-      expect(screen.getByText("No se pudo verificar tu correo")).toBeInTheDocument()
-    );
+    await waitFor(() => expect(screen.getByText("No se pudo verificar tu correo")).toBeInTheDocument());
     expect(screen.getByText(/El enlace no es válido o ya expiró/)).toBeInTheDocument();
   });
 });

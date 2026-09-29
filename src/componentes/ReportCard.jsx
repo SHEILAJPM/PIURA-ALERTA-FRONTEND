@@ -172,7 +172,8 @@ function ReportCard({ reporte, onLike, onConfirmar, distanciaKm }) {
         {reporte.confirmaciones_count > 0 && (
           <p className="text-sm" style={{ color: "var(--color-text-muted)" }}>
             {reporte.confirmaciones_count}{" "}
-            {reporte.confirmaciones_count === 1 ? "persona confirmó" : "personas confirmaron"} que esto es real
+            {reporte.confirmaciones_count === 1 ? "persona confirmó" : "personas confirmaron"} que esto es
+            real
           </p>
         )}
         {reporte.foto_url && (

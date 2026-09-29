@@ -11,16 +11,18 @@ const reporteBase = {
   descripcion: "Calle inundada en el jirón Loreto",
   foto_url: null,
   estado: "pendiente",
-  likes_count: 3,
-  te_gusta: false,
+  reacciones_util: 3,
+  reacciones_alerta: 0,
+  reacciones_confirmo: 0,
+  reaccion_usuario: null,
   creado_en: "2026-08-16T10:00:00Z",
 };
 
-function renderCard(reporte, onLike = vi.fn()) {
+function renderCard(reporte, onReaccion = vi.fn()) {
   return render(
     <MemoryRouter>
       <AuthProvider>
-        <ReportCard reporte={reporte} onLike={onLike} />
+        <ReportCard reporte={reporte} onReaccion={onReaccion} />
         <AuthModal />
       </AuthProvider>
     </MemoryRouter>
@@ -30,38 +32,61 @@ function renderCard(reporte, onLike = vi.fn()) {
 describe("ReportCard", () => {
   beforeEach(() => localStorage.clear());
 
-  it("sin sesión: al hacer click en el like se abre el modal de login, no llama a onLike", async () => {
-    const onLike = vi.fn();
-    renderCard(reporteBase, onLike);
+  it("sin sesión: al hacer click en útil se abre el modal de login y no llama a onReaccion", async () => {
+    const onReaccion = vi.fn();
+    renderCard(reporteBase, onReaccion);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Dar me gusta" }));
+      fireEvent.click(screen.getByRole("button", { name: "Marcar como útil" }));
     });
 
-    expect(onLike).not.toHaveBeenCalled();
+    expect(onReaccion).not.toHaveBeenCalled();
     expect(screen.getByRole("heading", { name: "Iniciar sesión" })).toBeInTheDocument();
   });
 
-  it("con sesión: el like llama a onLike con el id del reporte", async () => {
+  it("con sesión: al marcar como útil llama a onReaccion con el id y tipo de reacción", async () => {
     localStorage.setItem(
       "piura-alerta-auth",
-      JSON.stringify({ token: "t", usuario: { id: "u1", nombre: "Sheila" } })
+      JSON.stringify({
+        token: "t",
+        usuario: { id: "u1", nombre: "Sheila" },
+      })
     );
-    const onLike = vi.fn().mockResolvedValue(undefined);
-    renderCard(reporteBase, onLike);
+
+    const onReaccion = vi.fn().mockResolvedValue(undefined);
+    renderCard(reporteBase, onReaccion);
 
     await act(async () => {
-      fireEvent.click(screen.getByRole("button", { name: "Dar me gusta" }));
+      fireEvent.click(screen.getByRole("button", { name: "Marcar como útil" }));
     });
-    expect(onLike).toHaveBeenCalledWith("r1");
+
+    expect(onReaccion).toHaveBeenCalledWith("r1", "util");
   });
 
-  it("muestra el corazón lleno cuando te_gusta es true", () => {
+  it("si ya marcó como útil, al hacer click nuevamente elimina la reacción", async () => {
     localStorage.setItem(
       "piura-alerta-auth",
-      JSON.stringify({ token: "t", usuario: { id: "u1", nombre: "Sheila" } })
+      JSON.stringify({
+        token: "t",
+        usuario: { id: "u1", nombre: "Sheila" },
+      })
     );
-    renderCard({ ...reporteBase, te_gusta: true });
-    expect(screen.getByRole("button", { name: "Quitar me gusta" })).toBeInTheDocument();
+
+    const onReaccion = vi.fn().mockResolvedValue(undefined);
+
+    renderCard(
+      {
+        ...reporteBase,
+        reaccion_usuario: "util",
+        reacciones_util: 4,
+      },
+      onReaccion
+    );
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Marcar como útil" }));
+    });
+
+    expect(onReaccion).toHaveBeenCalledWith("r1", null);
   });
 });

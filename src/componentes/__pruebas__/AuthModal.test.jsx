@@ -91,7 +91,10 @@ describe("AuthModal", () => {
   });
 
   it("un ciudadano normal (sin requiere_2fa) cierra el modal directo, sin pedir código", async () => {
-    iniciarSesion.mockResolvedValue({ token: "t", usuario: { id: "u1", nombre: "Sheila", rol: "ciudadano" } });
+    iniciarSesion.mockResolvedValue({
+      token: "t",
+      usuario: { id: "u1", nombre: "Sheila", rol: "ciudadano" },
+    });
     renderModal("login");
     fireEvent.click(screen.getByText("abrir-login"));
 

@@ -372,7 +372,12 @@ function Albergues() {
               </thead>
               <tbody>
                 {albergues.map((a) => (
-                  <FilaAlbergue key={a.id} albergue={a} onGuardar={guardarOcupacion} onQuitar={manejarQuitar} />
+                  <FilaAlbergue
+                    key={a.id}
+                    albergue={a}
+                    onGuardar={guardarOcupacion}
+                    onQuitar={manejarQuitar}
+                  />
                 ))}
               </tbody>
             </table>

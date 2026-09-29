@@ -25,13 +25,7 @@ function AvatarAsistente({ size = 40, className = "" }) {
       <circle cx="40" cy="40" r="4" fill="#fff" />
       <circle cx="25" cy="40" r="2" fill="var(--color-brand-chrome, #0a2f52)" />
       <circle cx="40" cy="40" r="2" fill="var(--color-brand-chrome, #0a2f52)" />
-      <path
-        d="M26 47c2.5 3 9.5 3 12 0"
-        stroke="#fff"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        fill="none"
-      />
+      <path d="M26 47c2.5 3 9.5 3 12 0" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" fill="none" />
     </svg>
   );
 }

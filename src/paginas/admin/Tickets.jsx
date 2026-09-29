@@ -22,7 +22,6 @@ const PRIORIDAD_LABEL = {
   baja: { texto: "Baja", color: "var(--color-text-muted)" },
 };
 
-
 function NuevoTicket({ sensores, onCrear }) {
   const [abierto, setAbierto] = useState(false);
   const [titulo, setTitulo] = useState("");

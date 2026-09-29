@@ -8,7 +8,15 @@ import Icon from "../Icon";
 // en cada página (children, con render prop) porque ahí sí difieren de
 // verdad -- ni la cantidad de campos ni la validación son iguales entre un
 // albergue y un sensor, así que no vale la pena forzarlos a un mismo molde.
-function FormularioCreacion({ camposIniciales, validar, onCrear, textoBoton, textoGuardar, textoGuardando, children }) {
+function FormularioCreacion({
+  camposIniciales,
+  validar,
+  onCrear,
+  textoBoton,
+  textoGuardar,
+  textoGuardando,
+  children,
+}) {
   const [abierto, setAbierto] = useState(false);
   const [valores, setValores] = useState(camposIniciales);
   const [enviando, setEnviando] = useState(false);
