@@ -1,4 +1,4 @@
-import { obtenerTokenGuardado } from "../context/AuthContext";
+import { obtenerTokenGuardado, dispararSesionExpirada } from "../context/AuthContext";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:4000";
 const SENSOR_POR_DEFECTO = "RIO-PIURA-01";
@@ -11,6 +11,11 @@ async function apiFetch(path, options) {
   const res = await fetch(`${API_URL}${path}`, { ...options, headers });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
+
+    if (res.status === 401 && token) {
+      dispararSesionExpirada();
+    }
+
     throw new Error(body.error ?? `Error ${res.status} al consultar ${path}`);
   }
   if (res.status === 204) return null;
